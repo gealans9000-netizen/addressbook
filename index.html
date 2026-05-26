@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1f2937">
+<title>업체별 주소록</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", sans-serif;
+    background: #f3f4f6;
+    color: #111827;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: #1f2937; color: #fff;
+    padding: 14px 16px 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  header .title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  header h1 { margin: 0; font-size: 17px; font-weight: 600; }
+  header .meta { font-size: 11px; color: #9ca3af; }
+  .search-box { position: relative; }
+  .search-box input {
+    width: 100%; height: 40px;
+    padding: 0 38px 0 38px;
+    border: none; border-radius: 10px;
+    background: #374151; color: #fff;
+    font-size: 15px; outline: none;
+  }
+  .search-box input::placeholder { color: #9ca3af; }
+  .search-box .icon-search {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: #9ca3af; font-size: 16px;
+  }
+  .search-box .clear-btn {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: #4b5563; border: none; color: #fff;
+    width: 24px; height: 24px; border-radius: 50%;
+    font-size: 14px; cursor: pointer; display: none;
+    align-items: center; justify-content: center;
+    padding: 0; line-height: 1;
+  }
+  .search-box .clear-btn.visible { display: flex; }
+  #status {
+    padding: 12px 16px; font-size: 13px; color: #6b7280; text-align: center;
+  }
+  #status.error { color: #b91c1c; }
+  .list { padding: 8px 12px 80px; }
+  .card {
+    background: #fff; border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 8px;
+    border: 1px solid #e5e7eb;
+  }
+  .card .name {
+    font-size: 16px; font-weight: 600; color: #111827;
+    margin-bottom: 8px; word-break: break-word;
+  }
+  .card .row {
+    display: flex; align-items: flex-start;
+    padding: 6px 0; font-size: 14px;
+    border-top: 1px solid #f3f4f6;
+  }
+  .card .row:first-of-type { border-top: none; padding-top: 4px; }
+  .card .row .label {
+    flex: 0 0 64px; color: #6b7280; font-size: 13px;
+    padding-top: 1px;
+  }
+  .card .row .value {
+    flex: 1; color: #111827; word-break: break-word;
+    line-height: 1.5;
+  }
+  .card .row .value a {
+    color: #2563eb; text-decoration: none;
+    display: inline-block; padding: 2px 0;
+  }
+  .card .row .value a.action {
+    color: #fff; background: #2563eb;
+    padding: 6px 12px; border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    margin-right: 6px; margin-bottom: 4px;
+  }
+  .card .row .value a.action.map { background: #059669; }
+  .empty {
+    text-align: center; padding: 60px 20px;
+    color: #9ca3af; font-size: 14px;
+  }
+  .empty .big { font-size: 40px; margin-bottom: 8px; }
+  .refresh-btn {
+    background: none; border: none; color: #d1d5db;
+    font-size: 13px; cursor: pointer; padding: 4px 8px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .refresh-btn:active { color: #fff; }
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid #d1d5db; border-top-color: transparent;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .footer-info {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(255,255,255,0.95); backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-top: 1px solid #e5e7eb;
+    padding: 8px 16px; font-size: 11px; color: #9ca3af;
+    text-align: center;
+  }
+  mark {
+    background: #fef08a; color: #713f12;
+    padding: 0 1px; border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-row">
+    <h1>📒 업체별 주소록</h1>
+    <button class="refresh-btn" id="refresh" aria-label="새로고침">
+      <span id="refresh-icon">↻</span>
+      <span id="refresh-text">새로고침</span>
+    </button>
+  </div>
+  <div class="search-box">
+    <span class="icon-search">🔍</span>
+    <input type="search" id="search" placeholder="이름·주소·연락처로 검색" autocomplete="off">
+    <button class="clear-btn" id="clear" aria-label="지우기">✕</button>
+  </div>
+</header>
+
+<div id="status">데이터를 불러오는 중...</div>
+<div class="list" id="list"></div>
+<div class="footer-info" id="footer">구글 시트 수정 시 약 5분 내 반영</div>
+
+<script>
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQAExVYByEBaTE1EyRv5u8bEG2JWDKFlPAHa12YzqgY126vr2eXuSISeijQqfcXtyNDPpZ9HOGCf7zM/pub?gid=0&single=true&output=csv";
+
+  let headers = [];
+  let rows = [];
+  let filtered = [];
+
+  // CSV 파서 (따옴표·줄바꿈·쉼표 처리)
+  function parseCSV(text) {
+    const result = [];
+    let row = [];
+    let cur = "";
+    let inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (inQuotes) {
+        if (c === '"') {
+          if (text[i+1] === '"') { cur += '"'; i++; }
+          else { inQuotes = false; }
+        } else {
+          cur += c;
+        }
+      } else {
+        if (c === '"') inQuotes = true;
+        else if (c === ',') { row.push(cur); cur = ""; }
+        else if (c === '\n' || c === '\r') {
+          if (c === '\r' && text[i+1] === '\n') i++;
+          row.push(cur); cur = "";
+          if (row.length > 1 || row[0] !== "") result.push(row);
+          row = [];
+        } else {
+          cur += c;
+        }
+      }
+    }
+    if (cur !== "" || row.length > 0) { row.push(cur); result.push(row); }
+    return result;
+  }
+
+  // 컬럼이 어떤 종류인지 추측
+  function classify(headerName, value) {
+    const h = (headerName || "").toLowerCase();
+    const v = (value || "").trim();
+    if (/(전화|연락처|핸드폰|휴대폰|폰|tel|phone|mobile|fax|팩스)/i.test(h)) return "tel";
+    if (/(주소|소재지|위치|address|location)/i.test(h)) return "addr";
+    if (/(메일|이메일|email|mail)/i.test(h)) return "email";
+    // 휴리스틱: 값에 전화번호 패턴이 있으면 tel
+    if (/^[\d\-()\s+]{8,}$/.test(v) && /\d{3,}/.test(v)) return "tel";
+    if (/@/.test(v) && /\./.test(v)) return "email";
+    return "text";
+  }
+
+  // 검색 강조
+  function highlight(text, q) {
+    if (!q) return escapeHTML(text);
+    const safe = escapeHTML(text);
+    const safeQ = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return safe.replace(new RegExp(safeQ, "gi"), m => `<mark>${m}</mark>`);
+  }
+
+  function escapeHTML(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    })[c]);
+  }
+
+  // 전화번호 정규화 (전화걸기용)
+  function telHref(v) {
+    return "tel:" + v.replace(/[^\d+]/g, "");
+  }
+
+  // 네이버 내비 딥링크 (앱 미설치 시 웹 지도로 fallback)
+  function openNaverNavi(addr) {
+    const encoded = encodeURIComponent(addr);
+    const appUrl = `nmap://route/car?dlat=&dlng=&dname=${encoded}&appname=addressbook`;
+    const webUrl = `https://map.naver.com/v5/search/${encoded}`;
+
+    // 모바일: 앱 실행 시도 → 1.2초 후에도 페이지가 보이면 웹으로 이동
+    const ua = navigator.userAgent;
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
+
+    if (isMobile) {
+      const start = Date.now();
+      // 앱 호출
+      window.location.href = appUrl;
+      // 앱이 안 열리면 (=페이지가 계속 활성 상태) 웹으로
+      setTimeout(() => {
+        if (!document.hidden && Date.now() - start < 2000) {
+          window.location.href = webUrl;
+        }
+      }, 1200);
+    } else {
+      // PC에서는 그냥 웹 지도 열기
+      window.open(webUrl, "_blank", "noopener");
+    }
+  }
+
+  function render() {
+    const list = document.getElementById("list");
+    const status = document.getElementById("status");
+    const q = document.getElementById("search").value.trim();
+
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty"><div class="big">🔍</div>${q ? "검색 결과가 없습니다" : "데이터가 없습니다"}</div>`;
+      status.textContent = `총 ${rows.length}건`;
+      return;
+    }
+
+    // 첫 번째 컬럼을 이름/제목으로 사용
+    const html = filtered.map(row => {
+      const title = row[0] || "(이름 없음)";
+      const detailRows = [];
+      for (let i = 1; i < headers.length; i++) {
+        const value = (row[i] || "").trim();
+        if (!value) continue;
+        const kind = classify(headers[i], value);
+        let valHTML;
+        if (kind === "tel") {
+          // 여러 번호가 한 셀에 있을 수 있음
+          const nums = value.split(/[,/;]\s*|\s{2,}/).filter(Boolean);
+          valHTML = nums.map(n => `<a href="${telHref(n)}" class="action">📞 ${escapeHTML(n.trim())}</a>`).join("");
+        } else if (kind === "addr") {
+          const safeAddr = value.replace(/'/g, "\\'");
+          valHTML = `<a href="javascript:void(0)" onclick="openNaverNavi('${safeAddr}')" class="action map">🧭 네이버 내비</a><br>${highlight(value, q)}`;
+        } else if (kind === "email") {
+          valHTML = `<a href="mailto:${encodeURIComponent(value)}">${highlight(value, q)}</a>`;
+        } else {
+          valHTML = highlight(value, q);
+        }
+        detailRows.push(`
+          <div class="row">
+            <div class="label">${escapeHTML(headers[i])}</div>
+            <div class="value">${valHTML}</div>
+          </div>`);
+      }
+      return `
+        <div class="card">
+          <div class="name">${highlight(title, q)}</div>
+          ${detailRows.join("")}
+        </div>`;
+    }).join("");
+
+    list.innerHTML = html;
+    status.textContent = q ? `${filtered.length}건 검색됨 (총 ${rows.length}건)` : `총 ${rows.length}건`;
+  }
+
+  function applySearch() {
+    const q = document.getElementById("search").value.trim().toLowerCase();
+    document.getElementById("clear").classList.toggle("visible", q.length > 0);
+    if (!q) {
+      filtered = rows.slice();
+    } else {
+      filtered = rows.filter(row =>
+        row.some(cell => (cell || "").toLowerCase().includes(q))
+      );
+    }
+    render();
+  }
+
+  async function loadData() {
+    const status = document.getElementById("status");
+    const refreshIcon = document.getElementById("refresh-icon");
+    const refreshText = document.getElementById("refresh-text");
+    status.classList.remove("error");
+    status.textContent = "데이터를 불러오는 중...";
+    refreshIcon.innerHTML = '<span class="spinner"></span>';
+    refreshText.textContent = "로딩";
+
+    try {
+      // 캐시 우회를 위해 timestamp 추가
+      const url = CSV_URL + "&_t=" + Date.now();
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const text = await res.text();
+      const parsed = parseCSV(text);
+      if (parsed.length === 0) throw new Error("빈 데이터");
+      headers = parsed[0].map(h => h.trim());
+      rows = parsed.slice(1).filter(r => r.some(c => (c || "").trim() !== ""));
+      applySearch();
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      document.getElementById("footer").textContent =
+        `마지막 동기화: ${hh}:${mm} · 시트 수정 시 약 5분 내 반영`;
+    } catch (err) {
+      status.classList.add("error");
+      status.textContent = "불러오기 실패: " + err.message + " (당겨서 새로고침)";
+    } finally {
+      refreshIcon.textContent = "↻";
+      refreshText.textContent = "새로고침";
+    }
+  }
+
+  // 이벤트 바인딩
+  document.getElementById("search").addEventListener("input", applySearch);
+  document.getElementById("clear").addEventListener("click", () => {
+    const inp = document.getElementById("search");
+    inp.value = ""; inp.focus(); applySearch();
+  });
+  document.getElementById("refresh").addEventListener("click", loadData);
+
+  // 화면이 다시 활성화될 때 자동 새로고침 (앱 전환 후 돌아왔을 때)
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) loadData();
+  });
+
+  loadData();
+</script>
+</body>
+</html>
