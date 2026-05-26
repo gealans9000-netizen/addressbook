@@ -67,7 +67,23 @@
   }
   .clear-btn.visible { display: flex; }
 
-  .sort-bar { display: flex; gap: 6px; margin-top: 10px; }
+  .chips {
+    display: flex; gap: 6px; overflow-x: auto;
+    margin-top: 10px; padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: 0 0 auto;
+    padding: 6px 12px; border-radius: 20px;
+    background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85);
+    font-size: 12.5px; font-weight: 500;
+    border: none; cursor: pointer; white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .chip.active { background: #fff; color: #0f172a; }
+
+  .sort-bar { display: flex; gap: 6px; margin-top: 8px; }
   .sort-btn {
     padding: 5px 10px; border-radius: 8px;
     background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7);
@@ -214,6 +230,7 @@
       </svg>
     </button>
   </div>
+  <div class="chips" id="chips"></div>
   <div class="sort-bar">
     <button class="sort-btn active" data-sort="date-desc">📅 최신순</button>
     <button class="sort-btn" data-sort="date-asc">📅 오래된순</button>
@@ -244,6 +261,8 @@
 
   let headers = [];
   let rows = [];
+  let categories = [];
+  let activeCategory = "전체";
   let searchQuery = "";
   let sortMode = "date-desc";
   let COL = {};
@@ -324,12 +343,38 @@
 
   function telLink(n) { return "tel:" + n.replace(/[^\d+]/g, ""); }
 
+  function renderChips() {
+    const chips = document.getElementById("chips");
+    if (categories.length <= 1) {
+      chips.innerHTML = "";
+      chips.style.display = "none";
+      return;
+    }
+    chips.style.display = "flex";
+    const items = ["전체", ...categories];
+    chips.innerHTML = items.map(cat => `
+      <button class="chip ${cat === activeCategory ? "active" : ""}" data-cat="${escapeHTML(cat)}">
+        ${escapeHTML(cat)}
+      </button>
+    `).join("");
+    chips.querySelectorAll(".chip").forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeCategory = btn.dataset.cat;
+        renderChips();
+        render();
+      });
+    });
+  }
+
   function render() {
     const list = document.getElementById("list");
     const status = document.getElementById("status");
     const q = searchQuery.toLowerCase();
 
     let filtered = rows.slice();
+    if (activeCategory !== "전체" && COL.cat !== -1) {
+      filtered = filtered.filter(r => String(r.data[COL.cat] || "").trim() === activeCategory);
+    }
     if (q) {
       filtered = filtered.filter(r => r.data.some(c => String(c || "").toLowerCase().includes(q)));
     }
@@ -363,7 +408,7 @@
       return;
     }
 
-    const useGrouping = (sortMode === "date-desc" || sortMode === "date-asc") && !q && COL.date !== -1;
+    const useGrouping = (sortMode === "date-desc" || sortMode === "date-asc") && !q && activeCategory === "전체" && COL.date !== -1;
     let lastGroup = null;
     const html = [];
 
@@ -426,7 +471,7 @@
     });
 
     list.innerHTML = html.join("");
-    const countTxt = q
+    const countTxt = (q || activeCategory !== "전체")
       ? `<span class="count">${filtered.length}건</span> / 총 ${rows.length}건`
       : `<span class="count">총 ${rows.length}건</span>`;
     status.querySelector("span").innerHTML = countTxt;
@@ -460,6 +505,19 @@
         phone:   findCol([/전화|연락처|핸드폰|휴대폰|폰|tel|phone|mobile/i])
       };
 
+      // 업체 구분 종류 추출
+      if (COL.cat !== -1) {
+        const set = new Set();
+        rows.forEach(r => {
+          const c = String(r.data[COL.cat] || "").trim();
+          if (c) set.add(c);
+        });
+        categories = [...set].sort();
+      } else {
+        categories = [];
+      }
+
+      renderChips();
       render();
 
       const now = new Date();
