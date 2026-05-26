@@ -393,7 +393,16 @@
       filtered.sort((a, b) => {
         const ca = String(a.data[COL.company] || "").trim();
         const cb = String(b.data[COL.company] || "").trim();
-        return ca.localeCompare(cb, "ko");
+        // 1차: 업체명 가나다순
+        const compareCompany = ca.localeCompare(cb, "ko");
+        if (compareCompany !== 0) return compareCompany;
+        // 2차: 같은 업체 내에서는 최신순
+        const da = COL.date !== -1 ? parseDate(a.data[COL.date]) : null;
+        const db = COL.date !== -1 ? parseDate(b.data[COL.date]) : null;
+        if (!da && !db) return 0;
+        if (!da) return 1;
+        if (!db) return -1;
+        return db - da;
       });
     }
 
@@ -408,7 +417,8 @@
       return;
     }
 
-    const useGrouping = (sortMode === "date-desc" || sortMode === "date-asc") && !q && activeCategory === "전체" && COL.date !== -1;
+    const useDateGrouping = (sortMode === "date-desc" || sortMode === "date-asc") && !q && activeCategory === "전체" && COL.date !== -1;
+    const useCompanyGrouping = sortMode === "company" && !q && COL.company !== -1;
     let lastGroup = null;
     const html = [];
 
@@ -421,10 +431,16 @@
       const person = COL.person !== -1 ? String(row[COL.person] || "").trim() : "";
       const phone = COL.phone !== -1 ? String(row[COL.phone] || "").trim() : "";
 
-      if (useGrouping) {
+      if (useDateGrouping) {
         const group = formatGroupHeader(date);
         if (group !== lastGroup) {
           html.push(`<div class="date-group">${group}</div>`);
+          lastGroup = group;
+        }
+      } else if (useCompanyGrouping) {
+        const group = company || "(업체 없음)";
+        if (group !== lastGroup) {
+          html.push(`<div class="date-group">🏢 ${escapeHTML(group)}</div>`);
           lastGroup = group;
         }
       }
