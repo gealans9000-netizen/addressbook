@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f172a">
+<title>현장 수정 · 관리자</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+    background: #f1f5f9; color: #0f172a;
+    min-height: 100vh; -webkit-font-smoothing: antialiased;
+  }
+
+  .header {
+    position: sticky; top: 0; z-index: 50;
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    color: #fff;
+    padding: max(12px, env(safe-area-inset-top)) 16px 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .back-btn {
+    background: rgba(255,255,255,0.1); border: none; color: #fff;
+    width: 36px; height: 36px; border-radius: 10px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex: 0 0 auto;
+  }
+  .back-btn:active { background: rgba(255,255,255,0.2); }
+  .header-title {
+    flex: 1; min-width: 0;
+    font-size: 17px; font-weight: 700;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  .container {
+    padding: 16px;
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
+    max-width: 520px; margin: 0 auto;
+  }
+
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block; font-size: 13px; font-weight: 600;
+    color: #475569; margin-bottom: 6px;
+  }
+  .field input, .field select {
+    width: 100%; height: 44px; padding: 0 14px;
+    border: 1.5px solid #e2e8f0; border-radius: 10px;
+    font-size: 15px; outline: none; background: #fff;
+    transition: border 0.15s;
+  }
+  .field input:focus, .field select:focus { border-color: #3b82f6; }
+  .field input[readonly] { background: #f8fafc; color: #94a3b8; }
+
+  .info-card {
+    background: #eff6ff; border: 1px solid #bfdbfe;
+    border-radius: 12px; padding: 10px 14px;
+    font-size: 13px; color: #1e40af;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* 하단 고정 액션 */
+  .bottom-actions {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #fff; border-top: 1px solid #e2e8f0;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    display: flex; gap: 8px;
+    max-width: 520px; margin: 0 auto;
+  }
+  .btn {
+    flex: 1; height: 48px; border: none; border-radius: 12px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+  }
+  .btn-save { background: #0f172a; color: #fff; flex: 2; }
+  .btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
+  .btn-delete { background: #fee2e2; color: #dc2626; }
+  .btn-delete:active { background: #fecaca; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 90px;
+    transform: translateX(-50%);
+    background: #0f172a; color: #fff;
+    padding: 12px 20px; border-radius: 12px;
+    font-size: 14px; font-weight: 500;
+    z-index: 300; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+  .toast.error { background: #dc2626; }
+
+  .loading-screen {
+    position: fixed; inset: 0;
+    background: #f1f5f9;
+    display: flex; align-items: center; justify-content: center;
+    color: #64748b; font-size: 14px;
+  }
+
+  .nav-action {
+    margin-top: 8px;
+    background: #ecfdf5; color: #059669;
+    border: 1px solid #a7f3d0; border-radius: 10px;
+    padding: 10px 14px; font-size: 13px;
+    display: flex; align-items: center; gap: 6px;
+    text-decoration: none; font-weight: 500;
+  }
+  .nav-action:active { background: #d1fae5; }
+
+  @media (min-width: 600px) {
+    .header > * { max-width: none; }
+    .bottom-actions { right: 50%; transform: translateX(50%); }
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loading">불러오는 중...</div>
+
+<div id="main" style="display:none;">
+  <div class="header">
+    <button class="back-btn" id="back" aria-label="뒤로">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+    </button>
+    <div class="header-title" id="page-title">현장 수정</div>
+  </div>
+
+  <div class="container">
+    <div class="info-card">
+      ℹ️ 시트의 <strong id="row-num"></strong>번째 행
+    </div>
+
+    <div class="field">
+      <label>시공일</label>
+      <input type="date" id="f-date">
+    </div>
+    <div class="field">
+      <label>업체 구분</label>
+      <input type="text" id="f-cat" list="cat-list">
+      <datalist id="cat-list"></datalist>
+    </div>
+    <div class="field">
+      <label>업체명</label>
+      <input type="text" id="f-company" list="company-list">
+      <datalist id="company-list"></datalist>
+    </div>
+    <div class="field">
+      <label>현장명</label>
+      <input type="text" id="f-site">
+    </div>
+    <div class="field">
+      <label>주소</label>
+      <input type="text" id="f-address">
+      <a href="javascript:void(0)" class="nav-action" id="navi-btn" style="display:none;">
+        🧭 네이버 내비로 이 주소 보기
+      </a>
+    </div>
+    <div class="field">
+      <label>담당자</label>
+      <input type="text" id="f-person">
+    </div>
+    <div class="field">
+      <label>전화번호</label>
+      <input type="tel" id="f-phone">
+    </div>
+  </div>
+
+  <div class="bottom-actions">
+    <button class="btn btn-delete" id="delete">🗑️ 삭제</button>
+    <button class="btn btn-save" id="save">저장</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // sessionStorage에서 인증 정보 가져오기
+  const adminKey = sessionStorage.getItem("adminKey");
+  const API_URL = sessionStorage.getItem("apiUrl");
+  const urlParams = new URLSearchParams(window.location.search);
+  const targetRow = parseInt(urlParams.get("row"));
+
+  if (!adminKey || !API_URL || !targetRow) {
+    alert("관리자 페이지에서 다시 접속해주세요");
+    window.location.href = "admin.html";
+  }
+
+  let headers = [];
+  let rowData = [];
+  let COL = {};
+
+  function findCol(patterns) {
+    for (const p of patterns) {
+      const idx = headers.findIndex(h => p.test(h));
+      if (idx !== -1) return idx;
+    }
+    return -1;
+  }
+
+  function showToast(msg, isError) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.toggle("error", !!isError);
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2500);
+  }
+
+  function parseDate(s) {
+    if (!s) return null;
+    const m = String(s).match(/(\d{4})[.\-\/년\s]+(\d{1,2})[.\-\/월\s]+(\d{1,2})/);
+    if (!m) return null;
+    return new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]));
+  }
+  function dateToISO(s) {
+    const d = parseDate(s);
+    if (!d) return "";
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+  function formatDateForSheet(iso) {
+    if (!iso) return "";
+    const [y, m, d] = iso.split("-");
+    const date = new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+    const days = ["일","월","화","수","목","금","토"];
+    return `${y}/${m}/${d}(${days[date.getDay()]})`;
+  }
+
+  function escapeHTML(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    })[c]);
+  }
+
+  // ───── 데이터 로드 ─────
+  async function loadData() {
+    try {
+      const res = await fetch(API_URL + "?action=list&_t=" + Date.now());
+      const result = await res.json();
+      if (!result.ok) throw new Error(result.error);
+
+      headers = (result.headers || []).map(h => String(h).trim());
+      const found = (result.rows || []).find(r => r.rowIndex === targetRow);
+      if (!found) {
+        alert("해당 행을 찾을 수 없습니다. 삭제되었을 수 있습니다.");
+        window.location.href = "admin.html";
+        return;
+      }
+      rowData = found.data;
+
+      COL = {
+        date:    findCol([/시공\s*일|날짜|일자|date/i]),
+        cat:     findCol([/업체\s*구분|구분|카테고리|분류/i]),
+        company: findCol([/업체\s*명|회사\s*명|상호|^업체$|^회사$/i]),
+        site:    findCol([/현장\s*명|현장|sitename|site/i]),
+        address: findCol([/주\s*소|소재지|위치|address|location/i]),
+        person:  findCol([/담당자|담당|성명/i]),
+        phone:   findCol([/전화|연락처|핸드폰|휴대폰|폰|tel|phone|mobile/i])
+      };
+
+      // 자동완성
+      const companies = new Set(), categories = new Set();
+      (result.rows || []).forEach(r => {
+        if (COL.company !== -1) {
+          const c = String(r.data[COL.company] || "").trim();
+          if (c) companies.add(c);
+        }
+        if (COL.cat !== -1) {
+          const c = String(r.data[COL.cat] || "").trim();
+          if (c) categories.add(c);
+        }
+      });
+      document.getElementById("company-list").innerHTML =
+        [...companies].sort().map(c => `<option value="${escapeHTML(c)}">`).join("");
+      document.getElementById("cat-list").innerHTML =
+        [...categories].sort().map(c => `<option value="${escapeHTML(c)}">`).join("");
+
+      // 폼에 값 채우기
+      if (COL.date !== -1) document.getElementById("f-date").value = dateToISO(rowData[COL.date]);
+      if (COL.cat !== -1) document.getElementById("f-cat").value = String(rowData[COL.cat] || "");
+      if (COL.company !== -1) document.getElementById("f-company").value = String(rowData[COL.company] || "");
+      if (COL.site !== -1) document.getElementById("f-site").value = String(rowData[COL.site] || "");
+      if (COL.address !== -1) document.getElementById("f-address").value = String(rowData[COL.address] || "");
+      if (COL.person !== -1) document.getElementById("f-person").value = String(rowData[COL.person] || "");
+      if (COL.phone !== -1) document.getElementById("f-phone").value = String(rowData[COL.phone] || "");
+
+      // 페이지 제목
+      const site = COL.site !== -1 ? String(rowData[COL.site] || "").trim() : "";
+      const company = COL.company !== -1 ? String(rowData[COL.company] || "").trim() : "";
+      document.getElementById("page-title").textContent = site || company || "현장 수정";
+      document.getElementById("row-num").textContent = targetRow;
+
+      // 네비 버튼
+      const addr = COL.address !== -1 ? String(rowData[COL.address] || "").trim() : "";
+      if (addr) {
+        const naviBtn = document.getElementById("navi-btn");
+        naviBtn.style.display = "flex";
+        naviBtn.onclick = () => openNaverNavi(addr);
+      }
+
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("main").style.display = "block";
+    } catch (e) {
+      document.getElementById("loading").textContent = "오류: " + e.message;
+    }
+  }
+
+  function openNaverNavi(addr) {
+    const encoded = encodeURIComponent(addr);
+    const appUrl = `nmap://search?query=${encoded}&appname=addressbook`;
+    const webUrl = `https://map.naver.com/p/search/${encoded}`;
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.location.href = appUrl;
+      setTimeout(() => { if (!document.hidden) window.location.href = webUrl; }, 1500);
+    } else {
+      window.open(webUrl, "_blank", "noopener");
+    }
+  }
+
+  // ───── 저장 ─────
+  document.getElementById("save").addEventListener("click", async () => {
+    const newRow = rowData.slice();
+    if (COL.date !== -1) {
+      const iso = document.getElementById("f-date").value;
+      newRow[COL.date] = iso ? formatDateForSheet(iso) : "";
+    }
+    if (COL.cat !== -1) newRow[COL.cat] = document.getElementById("f-cat").value.trim();
+    if (COL.company !== -1) newRow[COL.company] = document.getElementById("f-company").value.trim();
+    if (COL.site !== -1) newRow[COL.site] = document.getElementById("f-site").value.trim();
+    if (COL.address !== -1) newRow[COL.address] = document.getElementById("f-address").value.trim();
+    if (COL.person !== -1) newRow[COL.person] = document.getElementById("f-person").value.trim();
+    if (COL.phone !== -1) newRow[COL.phone] = document.getElementById("f-phone").value.trim();
+
+    const btn = document.getElementById("save");
+    btn.disabled = true; btn.textContent = "저장 중...";
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "update", key: adminKey, rowIndex: targetRow, row: newRow })
+      });
+      const result = await res.json();
+      if (result.ok) {
+        showToast("✓ 수정 완료");
+        setTimeout(() => { window.location.href = "admin.html"; }, 700);
+      } else {
+        showToast(result.error || "수정 실패", true);
+      }
+    } catch (e) {
+      showToast("오류: " + e.message, true);
+    } finally {
+      btn.disabled = false; btn.textContent = "저장";
+    }
+  });
+
+  // ───── 삭제 ─────
+  document.getElementById("delete").addEventListener("click", async () => {
+    const site = document.getElementById("f-site").value || document.getElementById("f-company").value || "이 현장";
+    if (!confirm(`"${site}" 항목을 정말 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return;
+
+    const btn = document.getElementById("delete");
+    btn.disabled = true; btn.textContent = "삭제 중...";
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "delete", key: adminKey, rowIndex: targetRow })
+      });
+      const result = await res.json();
+      if (result.ok) {
+        showToast("✓ 삭제 완료");
+        setTimeout(() => { window.location.href = "admin.html"; }, 700);
+      } else {
+        showToast(result.error || "삭제 실패", true);
+        btn.disabled = false; btn.textContent = "🗑️ 삭제";
+      }
+    } catch (e) {
+      showToast("오류: " + e.message, true);
+      btn.disabled = false; btn.textContent = "🗑️ 삭제";
+    }
+  });
+
+  // ───── 뒤로 ─────
+  document.getElementById("back").addEventListener("click", () => {
+    window.location.href = "admin.html";
+  });
+
+  loadData();
+</script>
+</body>
+</html>

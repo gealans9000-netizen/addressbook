@@ -5,24 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0f172a">
-<title>업체 주소록</title>
+<title>시공 현장 주소록</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; }
-  html { font-size: 16px; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", "맑은 고딕", sans-serif;
-    background: #f1f5f9;
-    color: #0f172a;
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-    -webkit-text-size-adjust: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+    background: #f1f5f9; color: #0f172a;
+    min-height: 100vh; -webkit-font-smoothing: antialiased;
     overscroll-behavior-y: contain;
   }
 
-  /* ───── 헤더 ───── */
   .header {
     position: sticky; top: 0; z-index: 50;
     background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
@@ -35,7 +29,7 @@
   }
   .brand {
     display: flex; align-items: center; gap: 8px;
-    font-size: 17px; font-weight: 700; letter-spacing: -0.3px;
+    font-size: 17px; font-weight: 700;
   }
   .brand-icon {
     width: 28px; height: 28px; border-radius: 8px;
@@ -44,25 +38,20 @@
     font-size: 15px;
   }
   .refresh-btn {
-    background: rgba(255,255,255,0.1); border: none;
-    color: #fff; width: 36px; height: 36px; border-radius: 10px;
-    font-size: 16px; cursor: pointer;
+    background: rgba(255,255,255,0.1); border: none; color: #fff;
+    width: 36px; height: 36px; border-radius: 10px; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    transition: background 0.15s;
   }
   .refresh-btn:active { background: rgba(255,255,255,0.2); }
   .refresh-btn.loading svg { animation: spin 0.9s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* 검색창 */
   .search-wrap { position: relative; }
   .search-wrap input {
-    width: 100%; height: 44px;
-    padding: 0 44px 0 44px;
+    width: 100%; height: 44px; padding: 0 44px;
     border: none; border-radius: 12px;
-    background: rgba(255,255,255,0.12);
-    color: #fff; font-size: 16px; outline: none;
-    transition: background 0.15s;
+    background: rgba(255,255,255,0.12); color: #fff;
+    font-size: 16px; outline: none;
   }
   .search-wrap input:focus { background: rgba(255,255,255,0.18); }
   .search-wrap input::placeholder { color: rgba(255,255,255,0.5); }
@@ -73,177 +62,119 @@
   .clear-btn {
     position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
     background: rgba(255,255,255,0.2); border: none; color: #fff;
-    width: 28px; height: 28px; border-radius: 50%;
-    cursor: pointer; display: none;
-    align-items: center; justify-content: center;
-    padding: 0;
+    width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+    display: none; align-items: center; justify-content: center; padding: 0;
   }
   .clear-btn.visible { display: flex; }
 
-  /* 필터 칩 */
-  .chips {
-    display: flex; gap: 6px; overflow-x: auto;
-    margin-top: 10px; padding-bottom: 2px;
-    scrollbar-width: none;
+  .sort-bar { display: flex; gap: 6px; margin-top: 10px; }
+  .sort-btn {
+    padding: 5px 10px; border-radius: 8px;
+    background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7);
+    font-size: 12px; font-weight: 500; border: none; cursor: pointer;
+    display: flex; align-items: center; gap: 4px;
   }
-  .chips::-webkit-scrollbar { display: none; }
-  .chip {
-    flex: 0 0 auto;
-    padding: 6px 12px; border-radius: 20px;
-    background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85);
-    font-size: 12.5px; font-weight: 500;
-    border: none; cursor: pointer; white-space: nowrap;
-    transition: all 0.15s;
-  }
-  .chip.active {
-    background: #fff; color: #0f172a;
-  }
+  .sort-btn.active { background: rgba(255,255,255,0.18); color: #fff; }
 
-  /* ───── 상태 바 ───── */
   .status-bar {
-    padding: 10px 16px;
-    font-size: 12.5px; color: #64748b;
-    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px; font-size: 12.5px; color: #64748b;
   }
   .status-bar .count { font-weight: 600; color: #0f172a; }
   .status-bar.error { color: #dc2626; }
 
-  /* ───── 카드 리스트 ───── */
   .list {
     padding: 0 12px;
-    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    padding-bottom: calc(60px + env(safe-area-inset-bottom));
   }
+
+  .date-group {
+    padding: 12px 4px 6px; font-size: 12px; font-weight: 600;
+    color: #64748b; letter-spacing: 0.3px;
+  }
+  .date-group:first-child { padding-top: 4px; }
+
   .card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 14px 16px;
-    margin-bottom: 10px;
-    border: 1px solid #e2e8f0;
+    background: #fff; border-radius: 16px; padding: 14px 16px;
+    margin-bottom: 8px; border: 1px solid #e2e8f0;
     box-shadow: 0 1px 2px rgba(0,0,0,0.03);
   }
-  .card-header {
-    display: flex; align-items: flex-start; gap: 10px;
-    margin-bottom: 10px;
+  .card-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 10px; margin-bottom: 8px;
   }
-  .avatar {
-    flex: 0 0 auto;
-    width: 40px; height: 40px; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; font-weight: 700; color: #fff;
-  }
-  .card-title-wrap { flex: 1; min-width: 0; padding-top: 1px; }
-  .company-name {
+  .site-name {
+    flex: 1; min-width: 0;
     font-size: 17px; font-weight: 700; color: #0f172a;
-    margin: 0 0 3px; line-height: 1.25;
-    word-break: break-word;
+    line-height: 1.3; word-break: break-word;
   }
-  .badge {
-    display: inline-block;
-    padding: 2px 8px; border-radius: 6px;
-    font-size: 11.5px; font-weight: 600;
-    background: #eff6ff; color: #1d4ed8;
+  .site-date {
+    flex: 0 0 auto; font-size: 12px; font-weight: 600;
+    color: #475569; background: #f1f5f9;
+    padding: 4px 9px; border-radius: 6px; white-space: nowrap;
   }
-  .badge.partner { background: #fef3c7; color: #b45309; }
-  .badge.client { background: #dcfce7; color: #15803d; }
-  .badge.vendor { background: #ede9fe; color: #6d28d9; }
-
-  .card-body { display: flex; flex-direction: column; gap: 4px; }
-  .info-row {
-    display: flex; align-items: flex-start; gap: 10px;
-    padding: 6px 0;
-    font-size: 14px; line-height: 1.45;
+  .company-line {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 10px; padding-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
   }
-  .info-row + .info-row { border-top: 1px solid #f1f5f9; }
-  .info-icon {
-    flex: 0 0 28px; height: 28px; border-radius: 8px;
-    background: #f1f5f9; color: #475569;
+  .company-icon {
+    width: 22px; height: 22px; border-radius: 6px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 13px;
+    font-size: 11px; font-weight: 700; color: #fff; flex: 0 0 auto;
   }
-  .info-content { flex: 1; min-width: 0; padding-top: 4px; }
-  .info-label {
+  .company-name { font-size: 14px; font-weight: 600; color: #334155; }
+
+  .address-block { display: flex; gap: 10px; align-items: flex-start; }
+  .address-pin {
+    flex: 0 0 28px; height: 28px; border-radius: 8px;
+    background: #ecfdf5; color: #059669;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .address-content { flex: 1; min-width: 0; padding-top: 3px; }
+  .address-label {
     font-size: 11px; color: #94a3b8; font-weight: 500;
-    text-transform: uppercase; letter-spacing: 0.3px;
-    margin-bottom: 1px;
+    text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px;
   }
-  .info-value { color: #0f172a; word-break: break-word; }
-  .info-value a {
-    color: #0f172a; text-decoration: none;
-    display: block; padding: 2px 0;
-  }
-  .info-value a.tappable {
-    color: #2563eb; font-weight: 500;
-  }
-  .info-value a.tappable:active { opacity: 0.6; }
   .address-link {
     display: flex; align-items: center; gap: 6px;
-    color: #059669 !important; font-weight: 500;
+    color: #059669; font-weight: 500; font-size: 14px;
+    text-decoration: none; line-height: 1.45; word-break: keep-all;
   }
-  .address-link::after {
-    content: "→"; font-size: 14px; color: #94a3b8;
-    transition: transform 0.15s;
-  }
-  .address-link:active::after { transform: translateX(3px); color: #059669; }
+  .address-link .arrow { font-size: 13px; color: #94a3b8; flex: 0 0 auto; }
+  .address-link:active { opacity: 0.6; }
 
-  /* 액션 버튼 행 */
-  .actions {
-    display: flex; gap: 8px;
-    margin-top: 12px; padding-top: 12px;
+  .extra-info {
+    margin-top: 10px; padding-top: 10px;
     border-top: 1px solid #f1f5f9;
+    display: flex; flex-wrap: wrap; gap: 10px;
+    font-size: 13px; color: #475569;
   }
-  .action-btn {
-    flex: 1;
-    padding: 10px 8px;
-    border-radius: 10px; border: none;
-    font-size: 13px; font-weight: 600;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 5px;
-    text-decoration: none;
-    transition: opacity 0.15s;
-  }
-  .action-btn:active { opacity: 0.7; }
-  .action-call { background: #2563eb; color: #fff; }
-  .action-sms { background: #f1f5f9; color: #334155; }
-  .action-navi { background: #03c75a; color: #fff; }
+  .extra-info a { color: #2563eb; text-decoration: none; font-weight: 500; }
+  .extra-info .item { display: flex; align-items: center; gap: 4px; }
 
-  /* 빈 상태 */
-  .empty {
-    text-align: center; padding: 80px 20px 40px;
-    color: #94a3b8;
-  }
-  .empty-icon {
-    font-size: 48px; margin-bottom: 12px; opacity: 0.5;
-  }
+  .empty { text-align: center; padding: 80px 20px 40px; color: #94a3b8; }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
   .empty-title { font-size: 16px; font-weight: 600; color: #475569; margin-bottom: 4px; }
   .empty-text { font-size: 13px; }
 
-  /* 푸터 */
   .footer {
     position: fixed; bottom: 0; left: 0; right: 0;
     background: rgba(255,255,255,0.85);
     backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
     border-top: 1px solid #e2e8f0;
     padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
-    font-size: 11px; color: #94a3b8;
-    text-align: center;
+    font-size: 11px; color: #94a3b8; text-align: center;
   }
 
-  /* 하이라이트 */
-  mark {
-    background: #fef08a; color: #713f12;
-    padding: 0 2px; border-radius: 3px;
-  }
+  mark { background: #fef08a; color: #713f12; padding: 0 2px; border-radius: 3px; }
 
-  /* 스켈레톤 로딩 */
   .skeleton-card {
-    background: #fff; border-radius: 16px;
-    padding: 14px 16px; margin-bottom: 10px;
-    border: 1px solid #e2e8f0;
+    background: #fff; border-radius: 16px; padding: 14px 16px;
+    margin-bottom: 8px; border: 1px solid #e2e8f0;
   }
   .skeleton-line {
     background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.2s infinite;
+    background-size: 200% 100%; animation: shimmer 1.2s infinite;
     border-radius: 4px; height: 14px;
   }
   @keyframes shimmer {
@@ -251,9 +182,8 @@
     100% { background-position: -200% 0; }
   }
 
-  /* 데스크탑/태블릿에서 가운데 정렬 */
   @media (min-width: 600px) {
-    .header, .list, .status-bar, .footer { max-width: 480px; margin-left: auto; margin-right: auto; }
+    .header, .list, .status-bar, .footer { max-width: 520px; margin-left: auto; margin-right: auto; }
     .footer { left: 50%; transform: translateX(-50%); }
   }
 </style>
@@ -263,11 +193,11 @@
 <div class="header">
   <div class="header-top">
     <div class="brand">
-      <div class="brand-icon">📒</div>
-      <span>업체 주소록</span>
+      <div class="brand-icon">🏗️</div>
+      <span>시공 현장 주소록</span>
     </div>
     <button class="refresh-btn" id="refresh" aria-label="새로고침">
-      <svg id="refresh-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>
         <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/>
       </svg>
@@ -277,78 +207,53 @@
     <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
     </svg>
-    <input type="search" id="search" placeholder="업체명·주소·담당자·전화번호" autocomplete="off" autocapitalize="off" autocorrect="off">
+    <input type="search" id="search" placeholder="현장명·업체명·주소·날짜 검색" autocomplete="off">
     <button class="clear-btn" id="clear" aria-label="지우기">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
         <path d="M18 6 6 18M6 6l12 12"/>
       </svg>
     </button>
   </div>
-  <div class="chips" id="chips"></div>
+  <div class="sort-bar">
+    <button class="sort-btn active" data-sort="date-desc">📅 최신순</button>
+    <button class="sort-btn" data-sort="date-asc">📅 오래된순</button>
+    <button class="sort-btn" data-sort="company">🏢 업체별</button>
+  </div>
 </div>
 
-<div class="status-bar" id="status">
-  <span>데이터를 불러오는 중...</span>
-</div>
+<div class="status-bar" id="status"><span>데이터를 불러오는 중...</span></div>
 
 <div class="list" id="list">
   <div class="skeleton-card">
-    <div class="skeleton-line" style="width: 50%; height: 18px; margin-bottom: 12px;"></div>
-    <div class="skeleton-line" style="width: 80%; margin-bottom: 8px;"></div>
-    <div class="skeleton-line" style="width: 65%;"></div>
+    <div class="skeleton-line" style="width: 60%; height: 18px; margin-bottom: 12px;"></div>
+    <div class="skeleton-line" style="width: 40%; margin-bottom: 10px;"></div>
+    <div class="skeleton-line" style="width: 85%;"></div>
   </div>
   <div class="skeleton-card">
-    <div class="skeleton-line" style="width: 40%; height: 18px; margin-bottom: 12px;"></div>
-    <div class="skeleton-line" style="width: 75%; margin-bottom: 8px;"></div>
-    <div class="skeleton-line" style="width: 60%;"></div>
+    <div class="skeleton-line" style="width: 50%; height: 18px; margin-bottom: 12px;"></div>
+    <div class="skeleton-line" style="width: 35%; margin-bottom: 10px;"></div>
+    <div class="skeleton-line" style="width: 75%;"></div>
   </div>
 </div>
 
-<div class="footer" id="footer">시트 수정 시 약 5분 내 자동 반영</div>
+<div class="footer" id="footer">실시간 동기화 · 시트 수정 즉시 반영</div>
 
 <script>
-  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQAExVYByEBaTE1EyRv5u8bEG2JWDKFlPAHa12YzqgY126vr2eXuSISeijQqfcXtyNDPpZ9HOGCf7zM/pub?gid=0&single=true&output=csv";
+  // ⚠️ Apps Script 웹 앱 URL을 여기에 입력
+  const API_URL = "https://script.google.com/macros/s/AKfycbwx-DGc_jSIWNqBDYn5jd-UuoW84sT_KEqxNkl3SH2iYGtn0_It_mHvnX7Su2zJ8Aq9Pg/exec";
 
   let headers = [];
   let rows = [];
-  let categories = []; // 업체 구분 종류
-  let activeCategory = "전체";
   let searchQuery = "";
+  let sortMode = "date-desc";
+  let COL = {};
 
-  // 아바타 색상 팔레트
-  const AVATAR_COLORS = [
+  const COMPANY_COLORS = [
     "#3b82f6", "#10b981", "#f59e0b", "#ef4444",
     "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16",
-    "#f97316", "#6366f1"
+    "#f97316", "#6366f1", "#14b8a6", "#a855f7"
   ];
 
-  // CSV 파서
-  function parseCSV(text) {
-    const result = [];
-    let row = [], cur = "", inQuotes = false;
-    for (let i = 0; i < text.length; i++) {
-      const c = text[i];
-      if (inQuotes) {
-        if (c === '"') {
-          if (text[i+1] === '"') { cur += '"'; i++; }
-          else inQuotes = false;
-        } else cur += c;
-      } else {
-        if (c === '"') inQuotes = true;
-        else if (c === ',') { row.push(cur); cur = ""; }
-        else if (c === '\n' || c === '\r') {
-          if (c === '\r' && text[i+1] === '\n') i++;
-          row.push(cur); cur = "";
-          if (row.length > 1 || row[0] !== "") result.push(row);
-          row = [];
-        } else cur += c;
-      }
-    }
-    if (cur !== "" || row.length > 0) { row.push(cur); result.push(row); }
-    return result;
-  }
-
-  // 컬럼 인덱스 찾기 (유연하게)
   function findCol(patterns) {
     for (const p of patterns) {
       const idx = headers.findIndex(h => p.test(h));
@@ -373,32 +278,41 @@
   function getInitial(name) {
     return (name || "?").trim().charAt(0).toUpperCase();
   }
-  function getAvatarColor(name) {
+  function getCompanyColor(name) {
     let hash = 0;
     for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+    return COMPANY_COLORS[Math.abs(hash) % COMPANY_COLORS.length];
   }
 
-  function badgeClass(category) {
-    if (!category) return "";
-    if (/협력|파트너/.test(category)) return "partner";
-    if (/고객|클라이언트/.test(category)) return "client";
-    if (/공급|벤더|거래/.test(category)) return "vendor";
-    return "";
+  function parseDate(s) {
+    if (!s) return null;
+    const m = s.match(/(\d{4})[.\-\/년\s]+(\d{1,2})[.\-\/월\s]+(\d{1,2})/);
+    if (!m) return null;
+    return new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]));
+  }
+  function formatDateShort(s) {
+    const d = parseDate(s);
+    if (!d) return s || "";
+    const yy = String(d.getFullYear()).slice(2);
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const days = ["일","월","화","수","목","금","토"];
+    return `${yy}.${mm}.${dd} (${days[d.getDay()]})`;
+  }
+  function formatGroupHeader(s) {
+    const d = parseDate(s);
+    if (!d) return "날짜 미상";
+    return `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
   }
 
-  // 네이버 내비 열기
   function openNaverNavi(addr) {
     if (!addr) return;
     const encoded = encodeURIComponent(addr);
     const appUrl = `nmap://search?query=${encoded}&appname=addressbook`;
     const webUrl = `https://map.naver.com/p/search/${encoded}`;
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
     if (isMobile) {
-      // 앱 호출 시도
       window.location.href = appUrl;
-      // 1.5초 후 앱이 안 떴으면 웹으로 fallback
       setTimeout(() => {
         if (!document.hidden) window.location.href = webUrl;
       }, 1500);
@@ -408,51 +322,34 @@
   }
   window.openNaverNavi = openNaverNavi;
 
-  function telLink(n) {
-    return "tel:" + n.replace(/[^\d+]/g, "");
-  }
-  function smsLink(n) {
-    return "sms:" + n.replace(/[^\d+]/g, "");
-  }
-
-  function renderChips() {
-    const chips = document.getElementById("chips");
-    const items = ["전체", ...categories];
-    chips.innerHTML = items.map(cat => `
-      <button class="chip ${cat === activeCategory ? "active" : ""}" data-cat="${escapeHTML(cat)}">
-        ${escapeHTML(cat)}
-      </button>
-    `).join("");
-    chips.querySelectorAll(".chip").forEach(btn => {
-      btn.addEventListener("click", () => {
-        activeCategory = btn.dataset.cat;
-        renderChips();
-        render();
-      });
-    });
-  }
+  function telLink(n) { return "tel:" + n.replace(/[^\d+]/g, ""); }
 
   function render() {
     const list = document.getElementById("list");
     const status = document.getElementById("status");
     const q = searchQuery.toLowerCase();
 
-    // 컬럼 인덱스
-    const catIdx = findCol([/업체\s*구분|구분|카테고리|분류|타입/i]);
-    const nameIdx = findCol([/업체\s*명|회사\s*명|상호|업체|회사|이름|명칭/i]);
-    const addrIdx = findCol([/주\s*소|소재지|위치|address|location/i]);
-    const personIdx = findCol([/담당자|담당|연락처\s*명|성명/i]);
-    const phoneIdx = findCol([/전화|연락처|핸드폰|휴대폰|폰|tel|phone|mobile/i]);
-    const faxIdx = findCol([/팩스|fax/i]);
-    const emailIdx = findCol([/메일|이메일|email|mail/i]);
-
-    // 필터링
-    let filtered = rows;
-    if (activeCategory !== "전체" && catIdx !== -1) {
-      filtered = filtered.filter(r => (r[catIdx] || "").trim() === activeCategory);
-    }
+    let filtered = rows.slice();
     if (q) {
-      filtered = filtered.filter(r => r.some(c => (c || "").toLowerCase().includes(q)));
+      filtered = filtered.filter(r => r.data.some(c => String(c || "").toLowerCase().includes(q)));
+    }
+
+    if (sortMode === "date-desc" || sortMode === "date-asc") {
+      const dir = sortMode === "date-desc" ? -1 : 1;
+      filtered.sort((a, b) => {
+        const da = COL.date !== -1 ? parseDate(a.data[COL.date]) : null;
+        const db = COL.date !== -1 ? parseDate(b.data[COL.date]) : null;
+        if (!da && !db) return 0;
+        if (!da) return 1;
+        if (!db) return -1;
+        return (da - db) * dir;
+      });
+    } else if (sortMode === "company" && COL.company !== -1) {
+      filtered.sort((a, b) => {
+        const ca = String(a.data[COL.company] || "").trim();
+        const cb = String(b.data[COL.company] || "").trim();
+        return ca.localeCompare(cb, "ko");
+      });
     }
 
     if (filtered.length === 0) {
@@ -462,99 +359,77 @@
           <div class="empty-title">${q ? "검색 결과가 없습니다" : "데이터가 없습니다"}</div>
           <div class="empty-text">${q ? "다른 검색어를 시도해보세요" : ""}</div>
         </div>`;
-      status.querySelector("span").textContent = `0건 / 총 ${rows.length}건`;
+      status.querySelector("span").innerHTML = `<span class="count">0건</span> / 총 ${rows.length}건`;
       return;
     }
 
-    list.innerHTML = filtered.map(row => {
-      const name = (nameIdx !== -1 ? row[nameIdx] : "") || "(이름 없음)";
-      const category = catIdx !== -1 ? (row[catIdx] || "").trim() : "";
-      const address = addrIdx !== -1 ? (row[addrIdx] || "").trim() : "";
-      const person = personIdx !== -1 ? (row[personIdx] || "").trim() : "";
-      const phone = phoneIdx !== -1 ? (row[phoneIdx] || "").trim() : "";
-      const fax = faxIdx !== -1 ? (row[faxIdx] || "").trim() : "";
-      const email = emailIdx !== -1 ? (row[emailIdx] || "").trim() : "";
+    const useGrouping = (sortMode === "date-desc" || sortMode === "date-asc") && !q && COL.date !== -1;
+    let lastGroup = null;
+    const html = [];
 
-      const avatarColor = getAvatarColor(name);
-      const bClass = badgeClass(category);
+    filtered.forEach(rowObj => {
+      const row = rowObj.data;
+      const date = COL.date !== -1 ? String(row[COL.date] || "").trim() : "";
+      const company = COL.company !== -1 ? String(row[COL.company] || "").trim() : "";
+      const site = COL.site !== -1 ? String(row[COL.site] || "").trim() : "";
+      const address = COL.address !== -1 ? String(row[COL.address] || "").trim() : "";
+      const person = COL.person !== -1 ? String(row[COL.person] || "").trim() : "";
+      const phone = COL.phone !== -1 ? String(row[COL.phone] || "").trim() : "";
+
+      if (useGrouping) {
+        const group = formatGroupHeader(date);
+        if (group !== lastGroup) {
+          html.push(`<div class="date-group">${group}</div>`);
+          lastGroup = group;
+        }
+      }
+
+      const titleText = site || company || "(이름 없음)";
       const safeAddr = address.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      const companyColor = getCompanyColor(company);
 
-      // 정보 행 만들기
-      const infoRows = [];
-      if (address) {
-        infoRows.push(`
-          <div class="info-row">
-            <div class="info-icon">📍</div>
-            <div class="info-content">
-              <div class="info-label">주소</div>
-              <div class="info-value">
+      const extras = [];
+      if (person) extras.push(`<div class="item">👤 ${highlight(person, q)}</div>`);
+      if (phone) extras.push(`<div class="item">📞 <a href="${telLink(phone)}">${highlight(phone, q)}</a></div>`);
+
+      html.push(`
+        <div class="card">
+          <div class="card-top">
+            <div class="site-name">${highlight(titleText, q)}</div>
+            ${date ? `<div class="site-date">${highlight(formatDateShort(date), q)}</div>` : ""}
+          </div>
+          ${company ? `
+            <div class="company-line">
+              <div class="company-icon" style="background:${companyColor}">${escapeHTML(getInitial(company))}</div>
+              <div class="company-name">${highlight(company, q)}</div>
+            </div>
+          ` : ""}
+          ${address ? `
+            <div class="address-block">
+              <div class="address-pin">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+              </div>
+              <div class="address-content">
+                <div class="address-label">탭하여 네이버 내비</div>
                 <a href="javascript:void(0)" onclick="openNaverNavi('${safeAddr}')" class="address-link">
-                  ${highlight(address, q)}
+                  <span>${highlight(address, q)}</span>
+                  <span class="arrow">→</span>
                 </a>
               </div>
             </div>
-          </div>`);
-      }
-      if (person) {
-        infoRows.push(`
-          <div class="info-row">
-            <div class="info-icon">👤</div>
-            <div class="info-content">
-              <div class="info-label">담당자</div>
-              <div class="info-value">${highlight(person, q)}</div>
-            </div>
-          </div>`);
-      }
-      if (fax) {
-        infoRows.push(`
-          <div class="info-row">
-            <div class="info-icon">📠</div>
-            <div class="info-content">
-              <div class="info-label">팩스</div>
-              <div class="info-value">${highlight(fax, q)}</div>
-            </div>
-          </div>`);
-      }
-      if (email) {
-        infoRows.push(`
-          <div class="info-row">
-            <div class="info-icon">✉️</div>
-            <div class="info-content">
-              <div class="info-label">이메일</div>
-              <div class="info-value"><a href="mailto:${escapeHTML(email)}" class="tappable">${highlight(email, q)}</a></div>
-            </div>
-          </div>`);
-      }
+          ` : ""}
+          ${extras.length ? `<div class="extra-info">${extras.join("")}</div>` : ""}
+        </div>
+      `);
+    });
 
-      // 액션 버튼
-      const actions = [];
-      if (phone) {
-        actions.push(`<a href="${telLink(phone)}" class="action-btn action-call">📞 전화</a>`);
-        actions.push(`<a href="${smsLink(phone)}" class="action-btn action-sms">💬 문자</a>`);
-      }
-      if (address) {
-        actions.push(`<a href="javascript:void(0)" onclick="openNaverNavi('${safeAddr}')" class="action-btn action-navi">🧭 내비</a>`);
-      }
-
-      return `
-        <div class="card">
-          <div class="card-header">
-            <div class="avatar" style="background:${avatarColor}">${escapeHTML(getInitial(name))}</div>
-            <div class="card-title-wrap">
-              <div class="company-name">${highlight(name, q)}</div>
-              ${category ? `<span class="badge ${bClass}">${escapeHTML(category)}</span>` : ""}
-              ${phone ? `<span class="badge" style="background:#f1f5f9;color:#475569;margin-left:4px">${highlight(phone, q)}</span>` : ""}
-            </div>
-          </div>
-          ${infoRows.length ? `<div class="card-body">${infoRows.join("")}</div>` : ""}
-          ${actions.length ? `<div class="actions">${actions.join("")}</div>` : ""}
-        </div>`;
-    }).join("");
-
-    const countTxt = q || activeCategory !== "전체"
-      ? `${filtered.length}건 / 총 ${rows.length}건`
-      : `총 ${rows.length}건`;
-    status.querySelector("span").innerHTML = `<span class="count">${countTxt}</span>`;
+    list.innerHTML = html.join("");
+    const countTxt = q
+      ? `<span class="count">${filtered.length}건</span> / 총 ${rows.length}건`
+      : `<span class="count">총 ${rows.length}건</span>`;
+    status.querySelector("span").innerHTML = countTxt;
   }
 
   async function loadData() {
@@ -567,32 +442,30 @@
     refreshBtn.classList.add("loading");
 
     try {
-      const url = CSV_URL + "&_t=" + Date.now();
-      const res = await fetch(url, { cache: "no-store" });
+      const res = await fetch(API_URL + "?action=list&_t=" + Date.now());
       if (!res.ok) throw new Error("HTTP " + res.status);
-      const text = await res.text();
-      const parsed = parseCSV(text);
-      if (parsed.length === 0) throw new Error("빈 데이터");
+      const result = await res.json();
+      if (!result.ok) throw new Error(result.error || "불러오기 실패");
 
-      headers = parsed[0].map(h => h.trim());
-      rows = parsed.slice(1).filter(r => r.some(c => (c || "").trim() !== ""));
+      headers = (result.headers || []).map(h => String(h).trim());
+      rows = result.rows || [];
 
-      // 업체 구분 카테고리 추출
-      const catIdx = headers.findIndex(h => /업체\s*구분|구분|카테고리|분류/i.test(h));
-      if (catIdx !== -1) {
-        const set = new Set(rows.map(r => (r[catIdx] || "").trim()).filter(Boolean));
-        categories = [...set].sort();
-      } else {
-        categories = [];
-      }
+      COL = {
+        date:    findCol([/시공\s*일|날짜|일자|date/i]),
+        cat:     findCol([/업체\s*구분|구분|카테고리|분류/i]),
+        company: findCol([/업체\s*명|회사\s*명|상호|^업체$|^회사$/i]),
+        site:    findCol([/현장\s*명|현장|sitename|site/i]),
+        address: findCol([/주\s*소|소재지|위치|address|location/i]),
+        person:  findCol([/담당자|담당|성명/i]),
+        phone:   findCol([/전화|연락처|핸드폰|휴대폰|폰|tel|phone|mobile/i])
+      };
 
-      renderChips();
       render();
 
       const now = new Date();
       const hh = String(now.getHours()).padStart(2, "0");
       const mm = String(now.getMinutes()).padStart(2, "0");
-      footer.textContent = `마지막 동기화 ${hh}:${mm} · 시트 수정 시 약 5분 내 반영`;
+      footer.textContent = `마지막 동기화 ${hh}:${mm} · 실시간 반영`;
     } catch (err) {
       status.classList.add("error");
       status.querySelector("span").textContent = "불러오기 실패: " + err.message;
@@ -600,40 +473,40 @@
         <div class="empty">
           <div class="empty-icon">⚠️</div>
           <div class="empty-title">데이터를 불러올 수 없습니다</div>
-          <div class="empty-text">${escapeHTML(err.message)}<br>잠시 후 새로고침 해주세요</div>
+          <div class="empty-text">${escapeHTML(err.message)}</div>
         </div>`;
     } finally {
       refreshBtn.classList.remove("loading");
     }
   }
 
-  // 이벤트
   const searchInput = document.getElementById("search");
   const clearBtn = document.getElementById("clear");
-
   let searchTimer;
   searchInput.addEventListener("input", e => {
     const v = e.target.value;
     clearBtn.classList.toggle("visible", v.length > 0);
     clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => {
-      searchQuery = v.trim();
-      render();
-    }, 150);
+    searchTimer = setTimeout(() => { searchQuery = v.trim(); render(); }, 150);
   });
   clearBtn.addEventListener("click", () => {
-    searchInput.value = "";
-    searchQuery = "";
-    clearBtn.classList.remove("visible");
-    render();
-    searchInput.focus();
+    searchInput.value = ""; searchQuery = "";
+    clearBtn.classList.remove("visible"); render(); searchInput.focus();
   });
   document.getElementById("refresh").addEventListener("click", loadData);
 
-  // 화면 활성화 시 자동 갱신 (5분 이상 지났을 때만)
+  document.querySelectorAll(".sort-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      sortMode = btn.dataset.sort;
+      render();
+    });
+  });
+
   let lastLoad = Date.now();
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && Date.now() - lastLoad > 5 * 60 * 1000) {
+    if (!document.hidden && Date.now() - lastLoad > 60 * 1000) {
       lastLoad = Date.now();
       loadData();
     }

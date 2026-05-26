@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f172a">
+<title>관리자 · 시공 현장 주소록</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+    background: #f1f5f9; color: #0f172a;
+    min-height: 100vh; -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: contain;
+  }
+
+  /* ───── 인증 화면 ───── */
+  .auth-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .auth-box {
+    width: 100%; max-width: 360px;
+    background: #fff; border-radius: 20px;
+    padding: 32px 24px;
+    text-align: center;
+  }
+  .auth-icon {
+    width: 64px; height: 64px; margin: 0 auto 16px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .auth-title { font-size: 18px; font-weight: 700; margin: 0 0 6px; }
+  .auth-desc { font-size: 13px; color: #64748b; margin: 0 0 20px; }
+  .auth-input {
+    width: 100%; height: 48px; padding: 0 16px;
+    border: 1.5px solid #e2e8f0; border-radius: 12px;
+    font-size: 16px; outline: none; margin-bottom: 12px;
+    transition: border 0.15s;
+  }
+  .auth-input:focus { border-color: #3b82f6; }
+  .auth-btn {
+    width: 100%; height: 48px; border: none; border-radius: 12px;
+    background: #0f172a; color: #fff;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .auth-btn:active { background: #1e293b; }
+  .auth-error {
+    font-size: 13px; color: #dc2626; margin-top: 10px; min-height: 18px;
+  }
+
+  /* ───── 헤더 ───── */
+  .header {
+    position: sticky; top: 0; z-index: 50;
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    color: #fff;
+    padding: max(12px, env(safe-area-inset-top)) 16px 12px;
+  }
+  .header-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 17px; font-weight: 700;
+  }
+  .brand-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, #ef4444, #f97316);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+  }
+  .header-actions { display: flex; gap: 8px; }
+  .icon-btn {
+    background: rgba(255,255,255,0.1); border: none; color: #fff;
+    width: 36px; height: 36px; border-radius: 10px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .icon-btn:active { background: rgba(255,255,255,0.2); }
+  .icon-btn.loading svg { animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .search-wrap { position: relative; }
+  .search-wrap input {
+    width: 100%; height: 44px; padding: 0 44px;
+    border: none; border-radius: 12px;
+    background: rgba(255,255,255,0.12); color: #fff;
+    font-size: 16px; outline: none;
+  }
+  .search-wrap input:focus { background: rgba(255,255,255,0.18); }
+  .search-wrap input::placeholder { color: rgba(255,255,255,0.5); }
+  .search-icon {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: rgba(255,255,255,0.6); pointer-events: none;
+  }
+
+  /* ───── 상태바 ───── */
+  .status-bar {
+    padding: 10px 16px; font-size: 12.5px; color: #64748b;
+  }
+  .status-bar .count { font-weight: 600; color: #0f172a; }
+
+  /* ───── 리스트 ───── */
+  .list {
+    padding: 0 12px;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+  .card {
+    background: #fff; border-radius: 14px; padding: 12px 14px;
+    margin-bottom: 8px; border: 1px solid #e2e8f0;
+    cursor: pointer; transition: transform 0.1s, background 0.15s;
+  }
+  .card:active { transform: scale(0.98); background: #f8fafc; }
+  .card-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 10px; margin-bottom: 6px;
+  }
+  .site-name {
+    flex: 1; min-width: 0;
+    font-size: 16px; font-weight: 700; color: #0f172a;
+    word-break: break-word;
+  }
+  .site-date {
+    flex: 0 0 auto; font-size: 11.5px; font-weight: 600;
+    color: #475569; background: #f1f5f9;
+    padding: 3px 8px; border-radius: 6px; white-space: nowrap;
+  }
+  .card-meta {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    font-size: 13px; color: #64748b;
+  }
+  .card-meta .item { display: flex; align-items: center; gap: 3px; }
+  .chevron {
+    position: absolute; right: 14px; color: #cbd5e1;
+    font-size: 16px;
+  }
+
+  /* ───── FAB (플로팅 추가 버튼) ───── */
+  .fab {
+    position: fixed;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    width: 56px; height: 56px; border-radius: 16px;
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    color: #fff; border: none;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(59,130,246,0.4);
+    cursor: pointer; z-index: 40;
+    transition: transform 0.15s;
+  }
+  .fab:active { transform: scale(0.92); }
+
+  /* ───── 추가 모달 ───── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(15,23,42,0.5);
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    display: none;
+    align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.2s; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    width: 100%; max-width: 520px;
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    max-height: 90vh; overflow-y: auto;
+    animation: slideUp 0.25s ease-out;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 20px; border-bottom: 1px solid #f1f5f9;
+    position: sticky; top: 0; background: #fff; z-index: 1;
+  }
+  .modal-title { font-size: 17px; font-weight: 700; }
+  .modal-close {
+    background: #f1f5f9; border: none; width: 32px; height: 32px;
+    border-radius: 50%; cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-body { padding: 16px 20px 20px; }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block; font-size: 13px; font-weight: 600;
+    color: #475569; margin-bottom: 6px;
+  }
+  .field input, .field select {
+    width: 100%; height: 44px; padding: 0 14px;
+    border: 1.5px solid #e2e8f0; border-radius: 10px;
+    font-size: 15px; outline: none; background: #fff;
+    transition: border 0.15s;
+  }
+  .field input:focus, .field select:focus { border-color: #3b82f6; }
+  .modal-actions {
+    display: flex; gap: 8px; margin-top: 8px;
+  }
+  .btn {
+    flex: 1; height: 48px; border: none; border-radius: 12px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .btn-primary { background: #0f172a; color: #fff; }
+  .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+  .btn-secondary { background: #f1f5f9; color: #334155; }
+
+  /* ───── 토스트 ───── */
+  .toast {
+    position: fixed; left: 50%; bottom: 90px;
+    transform: translateX(-50%);
+    background: #0f172a; color: #fff;
+    padding: 12px 20px; border-radius: 12px;
+    font-size: 14px; font-weight: 500;
+    z-index: 300; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+  .toast.error { background: #dc2626; }
+
+  .empty { text-align: center; padding: 60px 20px; color: #94a3b8; }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+  .empty-title { font-size: 16px; font-weight: 600; color: #475569; margin-bottom: 4px; }
+
+  @media (min-width: 600px) {
+    .header, .list, .status-bar { max-width: 520px; margin-left: auto; margin-right: auto; }
+    .fab { left: 50%; transform: translateX(calc(260px - 56px - 16px)); }
+  }
+</style>
+</head>
+<body>
+
+<!-- 인증 화면 -->
+<div class="auth-overlay" id="auth">
+  <div class="auth-box">
+    <div class="auth-icon">🔐</div>
+    <h1 class="auth-title">관리자 인증</h1>
+    <p class="auth-desc">관리자 비밀키를 입력해주세요</p>
+    <input type="password" class="auth-input" id="auth-input" placeholder="비밀키" autocomplete="off">
+    <button class="auth-btn" id="auth-btn">접속</button>
+    <div class="auth-error" id="auth-error"></div>
+  </div>
+</div>
+
+<!-- 메인 화면 (인증 후) -->
+<div id="main" style="display:none;">
+  <div class="header">
+    <div class="header-top">
+      <div class="brand">
+        <div class="brand-icon">⚙️</div>
+        <span>관리자 모드</span>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="refresh" aria-label="새로고침">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>
+            <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="logout" aria-label="로그아웃">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="search-wrap">
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
+      </svg>
+      <input type="search" id="search" placeholder="현장명·업체명·주소 검색">
+    </div>
+  </div>
+
+  <div class="status-bar" id="status"><span>불러오는 중...</span></div>
+  <div class="list" id="list"></div>
+
+  <button class="fab" id="fab" aria-label="새 현장 추가">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+  </button>
+</div>
+
+<!-- 추가 모달 -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">새 현장 추가</div>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>시공일</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="field">
+        <label>업체 구분</label>
+        <input type="text" id="f-cat" placeholder="시공 / 협력 등" list="cat-list">
+        <datalist id="cat-list"></datalist>
+      </div>
+      <div class="field">
+        <label>업체명</label>
+        <input type="text" id="f-company" placeholder="예: 하팩" list="company-list">
+        <datalist id="company-list"></datalist>
+      </div>
+      <div class="field">
+        <label>현장명</label>
+        <input type="text" id="f-site" placeholder="예: 파주 장현리">
+      </div>
+      <div class="field">
+        <label>주소</label>
+        <input type="text" id="f-address" placeholder="예: 파주시 적성면 장현리 494">
+      </div>
+      <div class="field">
+        <label>담당자</label>
+        <input type="text" id="f-person" placeholder="예: 김담당">
+      </div>
+      <div class="field">
+        <label>전화번호</label>
+        <input type="tel" id="f-phone" placeholder="예: 010-1234-5678">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancel">취소</button>
+        <button class="btn btn-primary" id="save">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ⚠️ Apps Script 웹 앱 URL을 여기에 입력
+  const API_URL = "https://script.google.com/macros/s/AKfycbwx-DGc_jSIWNqBDYn5jd-UuoW84sT_KEqxNkl3SH2iYGtn0_It_mHvnX7Su2zJ8Aq9Pg/exec";
+
+  let adminKey = "";
+  let headers = [];
+  let rows = [];
+  let searchQuery = "";
+  let COL = {};
+  let companies = new Set();
+  let categories = new Set();
+
+  function findCol(patterns) {
+    for (const p of patterns) {
+      const idx = headers.findIndex(h => p.test(h));
+      if (idx !== -1) return idx;
+    }
+    return -1;
+  }
+
+  function escapeHTML(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    })[c]);
+  }
+
+  function highlight(text, q) {
+    if (!q) return escapeHTML(text);
+    const safe = escapeHTML(text);
+    const safeQ = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return safe.replace(new RegExp(safeQ, "gi"), m => `<mark>${m}</mark>`);
+  }
+
+  function parseDate(s) {
+    if (!s) return null;
+    const m = String(s).match(/(\d{4})[.\-\/년\s]+(\d{1,2})[.\-\/월\s]+(\d{1,2})/);
+    if (!m) return null;
+    return new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]));
+  }
+  function formatDateShort(s) {
+    const d = parseDate(s);
+    if (!d) return s || "";
+    const yy = String(d.getFullYear()).slice(2);
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yy}.${mm}.${dd}`;
+  }
+  function todayISO() {
+    const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+
+  function showToast(msg, isError) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.toggle("error", !!isError);
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2500);
+  }
+
+  // ───── 인증 ─────
+  function tryAuth(key) {
+    return fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "list", key: key })
+    }).then(r => r.json());
+  }
+
+  async function handleAuth() {
+    const input = document.getElementById("auth-input");
+    const btn = document.getElementById("auth-btn");
+    const err = document.getElementById("auth-error");
+    const key = input.value.trim();
+    if (!key) { err.textContent = "비밀키를 입력해주세요"; return; }
+
+    btn.disabled = true; btn.textContent = "확인 중...";
+    err.textContent = "";
+
+    try {
+      const res = await tryAuth(key);
+      if (res.ok) {
+        adminKey = key;
+        headers = (res.headers || []).map(h => String(h).trim());
+        rows = res.rows || [];
+        setupColumns();
+        document.getElementById("auth").style.display = "none";
+        document.getElementById("main").style.display = "block";
+        render();
+      } else {
+        err.textContent = "비밀키가 일치하지 않습니다";
+      }
+    } catch (e) {
+      err.textContent = "연결 오류: " + e.message;
+    } finally {
+      btn.disabled = false; btn.textContent = "접속";
+    }
+  }
+
+  document.getElementById("auth-btn").addEventListener("click", handleAuth);
+  document.getElementById("auth-input").addEventListener("keypress", e => {
+    if (e.key === "Enter") handleAuth();
+  });
+  document.getElementById("auth-input").focus();
+
+  document.getElementById("logout").addEventListener("click", () => {
+    if (confirm("로그아웃 하시겠습니까?")) {
+      adminKey = "";
+      document.getElementById("main").style.display = "none";
+      document.getElementById("auth").style.display = "flex";
+      document.getElementById("auth-input").value = "";
+      document.getElementById("auth-error").textContent = "";
+    }
+  });
+
+  function setupColumns() {
+    COL = {
+      date:    findCol([/시공\s*일|날짜|일자|date/i]),
+      cat:     findCol([/업체\s*구분|구분|카테고리|분류/i]),
+      company: findCol([/업체\s*명|회사\s*명|상호|^업체$|^회사$/i]),
+      site:    findCol([/현장\s*명|현장|sitename|site/i]),
+      address: findCol([/주\s*소|소재지|위치|address|location/i]),
+      person:  findCol([/담당자|담당|성명/i]),
+      phone:   findCol([/전화|연락처|핸드폰|휴대폰|폰|tel|phone|mobile/i])
+    };
+    // 자동완성용 데이터 수집
+    companies = new Set();
+    categories = new Set();
+    rows.forEach(r => {
+      if (COL.company !== -1) {
+        const c = String(r.data[COL.company] || "").trim();
+        if (c) companies.add(c);
+      }
+      if (COL.cat !== -1) {
+        const c = String(r.data[COL.cat] || "").trim();
+        if (c) categories.add(c);
+      }
+    });
+    document.getElementById("company-list").innerHTML =
+      [...companies].sort().map(c => `<option value="${escapeHTML(c)}">`).join("");
+    document.getElementById("cat-list").innerHTML =
+      [...categories].sort().map(c => `<option value="${escapeHTML(c)}">`).join("");
+  }
+
+  // ───── 데이터 새로고침 ─────
+  async function reload() {
+    const btn = document.getElementById("refresh");
+    btn.classList.add("loading");
+    try {
+      const res = await fetch(API_URL + "?action=list&_t=" + Date.now());
+      const result = await res.json();
+      if (result.ok) {
+        headers = (result.headers || []).map(h => String(h).trim());
+        rows = result.rows || [];
+        setupColumns();
+        render();
+      }
+    } catch (e) {
+      showToast("새로고침 실패", true);
+    } finally {
+      btn.classList.remove("loading");
+    }
+  }
+  document.getElementById("refresh").addEventListener("click", reload);
+
+  // ───── 리스트 렌더링 ─────
+  function render() {
+    const list = document.getElementById("list");
+    const status = document.getElementById("status");
+    const q = searchQuery.toLowerCase();
+
+    let filtered = rows.slice();
+    if (q) {
+      filtered = filtered.filter(r => r.data.some(c => String(c || "").toLowerCase().includes(q)));
+    }
+    filtered.sort((a, b) => {
+      const da = COL.date !== -1 ? parseDate(a.data[COL.date]) : null;
+      const db = COL.date !== -1 ? parseDate(b.data[COL.date]) : null;
+      if (!da && !db) return 0;
+      if (!da) return 1;
+      if (!db) return -1;
+      return db - da; // 최신순
+    });
+
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty"><div class="empty-icon">📭</div>
+        <div class="empty-title">${q ? "검색 결과가 없습니다" : "데이터가 없습니다"}</div></div>`;
+      status.querySelector("span").innerHTML = `<span class="count">0건</span> / 총 ${rows.length}건`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(rowObj => {
+      const row = rowObj.data;
+      const idx = rowObj.rowIndex;
+      const date = COL.date !== -1 ? String(row[COL.date] || "").trim() : "";
+      const company = COL.company !== -1 ? String(row[COL.company] || "").trim() : "";
+      const site = COL.site !== -1 ? String(row[COL.site] || "").trim() : "";
+      const address = COL.address !== -1 ? String(row[COL.address] || "").trim() : "";
+      const titleText = site || company || "(이름 없음)";
+
+      return `
+        <div class="card" onclick="openDetail(${idx})">
+          <div class="card-top">
+            <div class="site-name">${highlight(titleText, q)}</div>
+            ${date ? `<div class="site-date">${highlight(formatDateShort(date), q)}</div>` : ""}
+          </div>
+          <div class="card-meta">
+            ${company ? `<div class="item">🏢 ${highlight(company, q)}</div>` : ""}
+            ${address ? `<div class="item">📍 ${highlight(address.length > 30 ? address.slice(0,30)+"..." : address, q)}</div>` : ""}
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    const countTxt = q
+      ? `<span class="count">${filtered.length}건</span> / 총 ${rows.length}건`
+      : `<span class="count">총 ${rows.length}건</span>`;
+    status.querySelector("span").innerHTML = countTxt;
+  }
+
+  // ───── 세부화면 이동 ─────
+  window.openDetail = function(rowIndex) {
+    // sessionStorage로 인증 정보 전달
+    sessionStorage.setItem("adminKey", adminKey);
+    sessionStorage.setItem("apiUrl", API_URL);
+    window.location.href = "admin-detail.html?row=" + rowIndex;
+  };
+
+  // ───── 검색 ─────
+  const searchInput = document.getElementById("search");
+  let searchTimer;
+  searchInput.addEventListener("input", e => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      searchQuery = e.target.value.trim();
+      render();
+    }, 150);
+  });
+
+  // ───── 추가 모달 ─────
+  const modal = document.getElementById("modal");
+  document.getElementById("fab").addEventListener("click", () => {
+    // 폼 초기화
+    document.getElementById("f-date").value = todayISO();
+    ["f-cat","f-company","f-site","f-address","f-person","f-phone"].forEach(id => {
+      document.getElementById(id).value = "";
+    });
+    modal.classList.add("open");
+  });
+  document.getElementById("modal-close").addEventListener("click", closeModal);
+  document.getElementById("cancel").addEventListener("click", closeModal);
+  modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
+  function closeModal() { modal.classList.remove("open"); }
+
+  document.getElementById("save").addEventListener("click", async () => {
+    const date = document.getElementById("f-date").value;
+    const cat = document.getElementById("f-cat").value.trim();
+    const company = document.getElementById("f-company").value.trim();
+    const site = document.getElementById("f-site").value.trim();
+    const address = document.getElementById("f-address").value.trim();
+    const person = document.getElementById("f-person").value.trim();
+    const phone = document.getElementById("f-phone").value.trim();
+
+    if (!company && !site && !address) {
+      showToast("업체명/현장명/주소 중 하나는 입력해주세요", true);
+      return;
+    }
+
+    // 헤더 순서에 맞춰 행 생성
+    const rowData = new Array(headers.length).fill("");
+    if (COL.date !== -1) rowData[COL.date] = date ? formatDateForSheet(date) : "";
+    if (COL.cat !== -1) rowData[COL.cat] = cat;
+    if (COL.company !== -1) rowData[COL.company] = company;
+    if (COL.site !== -1) rowData[COL.site] = site;
+    if (COL.address !== -1) rowData[COL.address] = address;
+    if (COL.person !== -1) rowData[COL.person] = person;
+    if (COL.phone !== -1) rowData[COL.phone] = phone;
+    // 번호 컬럼이 있으면 자동 채움
+    const noIdx = headers.findIndex(h => /^번호$|^no$|^순번$/i.test(h));
+    if (noIdx !== -1) rowData[noIdx] = rows.length + 1;
+
+    const btn = document.getElementById("save");
+    btn.disabled = true; btn.textContent = "저장 중...";
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "add", key: adminKey, row: rowData })
+      });
+      const result = await res.json();
+      if (result.ok) {
+        showToast("✓ 추가 완료");
+        closeModal();
+        await reload();
+      } else {
+        showToast(result.error || "저장 실패", true);
+      }
+    } catch (e) {
+      showToast("오류: " + e.message, true);
+    } finally {
+      btn.disabled = false; btn.textContent = "저장";
+    }
+  });
+
+  // 시트 저장용 날짜 형식: "2026/05/26(화)"
+  function formatDateForSheet(iso) {
+    const [y, m, d] = iso.split("-");
+    const date = new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+    const days = ["일","월","화","수","목","금","토"];
+    return `${y}/${m}/${d}(${days[date.getDay()]})`;
+  }
+</script>
+</body>
+</html>
