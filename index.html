@@ -551,23 +551,32 @@
 
   function parseDate(s) {
     if (!s) return null;
-    const m = s.match(/(\d{4})[.\-\/년\s]+(\d{1,2})[.\-\/월\s]+(\d{1,2})/);
+    const str = String(s);
+    // ISO 형식 (예: "2026-05-31T15:00:00.000Z") → 한국 시간으로 보정
+    if (str.indexOf('T') !== -1 && str.indexOf('Z') !== -1) {
+      const utc = new Date(str);
+      if (isNaN(utc)) return null;
+      // UTC + 9시간 = 한국 시간
+      return new Date(utc.getTime() + 9 * 60 * 60 * 1000);
+    }
+    // 일반 날짜 형식 (예: "2026/06/01(월)", "2026-06-01")
+    const m = str.match(/(\d{4})[.\-\/년\s]+(\d{1,2})[.\-\/월\s]+(\d{1,2})/);
     if (!m) return null;
     return new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]));
   }
   function formatDateShort(s) {
     const d = parseDate(s);
     if (!d) return s || "";
-    const yy = String(d.getFullYear()).slice(2);
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
+    const yy = String(d.getUTCFullYear()).slice(2);
+    const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(d.getUTCDate()).padStart(2, "0");
     const days = ["일","월","화","수","목","금","토"];
-    return `${yy}.${mm}.${dd} (${days[d.getDay()]})`;
+    return `${yy}.${mm}.${dd} (${days[d.getUTCDay()]})`;
   }
   function formatGroupHeader(s) {
     const d = parseDate(s);
     if (!d) return "날짜 미상";
-    return `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
+    return `${d.getUTCFullYear()}년 ${d.getUTCMonth() + 1}월`;
   }
 
   // 내비 앱 직접 열기
@@ -919,9 +928,17 @@
     selectedDate = formatDateKey(today);
   }
   function formatDateKey(d) {
+    // 로컬 시간 기준 (오늘 날짜, 달력 셀 등에 사용)
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+  function formatDateKeyUTC(d) {
+    // UTC 기준 (parseDate 결과처럼 9시간 보정된 Date에 사용)
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(d.getUTCDate()).padStart(2, "0");
     return `${y}-${m}-${day}`;
   }
 
@@ -932,7 +949,7 @@
       if (COL.date === -1) return;
       const d = parseDate(rowObj.data[COL.date]);
       if (!d) return;
-      const key = formatDateKey(d);
+      const key = formatDateKeyUTC(d);  // parseDate 결과는 UTC 메서드 사용
       if (!map[key]) map[key] = [];
       map[key].push(rowObj);
     });
