@@ -275,48 +275,53 @@
   }
   .card-top {
     display: flex; justify-content: space-between; align-items: flex-start;
-    gap: 10px; margin-bottom: 8px;
+    gap: 10px; margin-bottom: 12px;
+  }
+  /* 현장명 + 업체명을 한 줄에 */
+  .site-row {
+    flex: 1; min-width: 0;
+    display: flex; align-items: center;
+    gap: 10px; flex-wrap: wrap;
   }
   .site-name {
-    flex: 1; min-width: 0;
     font-size: 17px; font-weight: 700; color: #0f172a;
     line-height: 1.3; word-break: break-word;
   }
+  .company-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #f1f5f9;
+    padding: 3px 9px 3px 4px;
+    border-radius: 14px;
+    flex-shrink: 0;
+  }
+  .company-icon {
+    width: 20px; height: 20px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #fff; flex: 0 0 auto;
+  }
+  .company-name { font-size: 12.5px; font-weight: 600; color: #334155; }
+
   .site-date {
     flex: 0 0 auto; font-size: 12px; font-weight: 600;
     color: #475569; background: #f1f5f9;
     padding: 4px 9px; border-radius: 6px; white-space: nowrap;
   }
-  .company-line {
-    display: flex; align-items: center; gap: 6px;
-    margin-bottom: 10px; padding-bottom: 10px;
-    border-bottom: 1px solid #f1f5f9;
-  }
-  .company-icon {
-    width: 22px; height: 22px; border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 700; color: #fff; flex: 0 0 auto;
-  }
-  .company-name { font-size: 14px; font-weight: 600; color: #334155; }
 
-  .address-block { display: flex; gap: 10px; align-items: flex-start; }
+  /* 주소 — 크고 진하게, 화살표/라벨 없음 */
+  .address-block {
+    display: flex; gap: 10px; align-items: center;
+    padding: 4px 0;
+  }
   .address-pin {
-    flex: 0 0 28px; height: 28px; border-radius: 8px;
+    flex: 0 0 32px; height: 32px; border-radius: 9px;
     background: #ecfdf5; color: #059669;
     display: flex; align-items: center; justify-content: center;
   }
-  .address-content { flex: 1; min-width: 0; padding-top: 3px; }
-  .address-label {
-    font-size: 11px; color: #94a3b8; font-weight: 500;
-    text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px;
+  .address-text {
+    flex: 1; min-width: 0;
+    font-size: 15.5px; font-weight: 600; color: #0f172a;
+    line-height: 1.4; word-break: keep-all;
   }
-  .address-link {
-    display: flex; align-items: center; gap: 6px;
-    color: #059669; font-weight: 500; font-size: 14px;
-    text-decoration: none; line-height: 1.45; word-break: keep-all;
-  }
-  .address-link .arrow { font-size: 13px; color: #94a3b8; flex: 0 0 auto; }
-  .address-link:active { opacity: 0.6; }
 
   .extra-info {
     margin-top: 10px; padding-top: 10px;
@@ -357,20 +362,11 @@
     100% { background-position: -200% 0; }
   }
 
-  /* ───── 주소 텍스트 (탭 없이) ───── */
-  .address-text {
-    color: #059669; font-weight: 500; font-size: 14px;
-    line-height: 1.45; word-break: keep-all;
-  }
-  .address-text .arrow {
-    color: #94a3b8; font-size: 13px; margin-left: 2px;
-  }
-
   .day-detail-addr-text {
-    padding: 8px 10px; margin-bottom: 8px;
-    background: #ecfdf5; color: #059669;
-    border-radius: 8px;
-    font-size: 13px; font-weight: 500;
+    padding: 10px 12px; margin-bottom: 10px;
+    background: #ecfdf5; color: #0f172a;
+    border-radius: 10px;
+    font-size: 15px; font-weight: 600;
     word-break: keep-all; line-height: 1.45;
   }
 
@@ -775,15 +771,17 @@
       html.push(`
         <div class="card">
           <div class="card-top">
-            <div class="site-name">${highlight(titleText, q)}</div>
+            <div class="site-row">
+              <span class="site-name">${highlight(titleText, q)}</span>
+              ${company ? `
+                <span class="company-badge">
+                  <span class="company-icon" style="background:${companyColor}">${escapeHTML(getInitial(company))}</span>
+                  <span class="company-name">${highlight(company, q)}</span>
+                </span>
+              ` : ""}
+            </div>
             ${date ? `<div class="site-date">${highlight(formatDateShort(date), q)}</div>` : ""}
           </div>
-          ${company ? `
-            <div class="company-line">
-              <div class="company-icon" style="background:${companyColor}">${escapeHTML(getInitial(company))}</div>
-              <div class="company-name">${highlight(company, q)}</div>
-            </div>
-          ` : ""}
           ${address ? `
             <div class="address-block">
               <div class="address-pin">
@@ -791,10 +789,7 @@
                   <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
                 </svg>
               </div>
-              <div class="address-content">
-                <div class="address-label">탭하여 길찾기</div>
-                <div class="address-text">${highlight(address, q)} <span class="arrow">→</span></div>
-              </div>
+              <div class="address-text">${highlight(address, q)}</div>
             </div>
             <div class="navi-actions">
               <button class="navi-action-btn" onclick="goNavi('naver', '${safeAddr}')">
@@ -1062,10 +1057,18 @@
         const site = COL.site !== -1 ? String(row[COL.site] || "").trim() : "";
         const address = COL.address !== -1 ? String(row[COL.address] || "").trim() : "";
         const safeAddr = address.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const companyColor = getCompanyColor(company);
         return `
           <div class="day-detail-card">
-            <div class="day-detail-site">${escapeHTML(site || "(현장명 없음)")}</div>
-            ${company ? `<div class="day-detail-company">🏢 ${escapeHTML(company)}</div>` : ""}
+            <div class="site-row" style="margin-bottom:10px;">
+              <span class="site-name">${escapeHTML(site || "(현장명 없음)")}</span>
+              ${company ? `
+                <span class="company-badge">
+                  <span class="company-icon" style="background:${companyColor}">${escapeHTML(getInitial(company))}</span>
+                  <span class="company-name">${escapeHTML(company)}</span>
+                </span>
+              ` : ""}
+            </div>
             ${address ? `
               <div class="day-detail-addr-text">📍 ${escapeHTML(address)}</div>
               <div class="navi-actions">
