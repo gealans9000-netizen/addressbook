@@ -67,6 +67,165 @@
   }
   .clear-btn.visible { display: flex; }
 
+  /* ───── 보기 모드 탭 ───── */
+  .view-tabs {
+    display: flex; gap: 4px;
+    background: rgba(255,255,255,0.08);
+    padding: 4px; border-radius: 10px;
+    margin-bottom: 12px;
+  }
+  .view-tab {
+    flex: 1; padding: 8px 12px;
+    background: transparent; border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 13.5px; font-weight: 600;
+    border-radius: 7px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .view-tab.active {
+    background: #fff; color: #0f172a;
+  }
+
+  .list-controls, .calendar-controls { animation: fadeIn 0.2s; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ───── 달력 컨트롤 ───── */
+  .calendar-controls {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .cal-nav-btn {
+    background: rgba(255,255,255,0.1); border: none;
+    color: #fff; width: 36px; height: 36px; border-radius: 10px;
+    cursor: pointer; flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cal-nav-btn:active { background: rgba(255,255,255,0.2); }
+  .cal-month-label {
+    flex: 1; background: transparent; border: none;
+    color: #fff; font-size: 16px; font-weight: 700;
+    cursor: pointer; text-align: center;
+  }
+  .cal-today-btn {
+    background: rgba(255,255,255,0.1); border: none;
+    color: #fff; padding: 0 14px; height: 36px;
+    border-radius: 10px; font-size: 13px; font-weight: 600;
+    cursor: pointer; flex: 0 0 auto;
+  }
+  .cal-today-btn:active { background: rgba(255,255,255,0.2); }
+
+  /* ───── 달력 그리드 ───── */
+  .calendar-view {
+    padding: 12px;
+    padding-bottom: calc(60px + env(safe-area-inset-bottom));
+  }
+  .calendar-grid {
+    background: #fff; border-radius: 16px;
+    padding: 12px 8px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  }
+  .cal-weekday-row {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 4px;
+  }
+  .cal-weekday {
+    text-align: center; font-size: 12px; font-weight: 600;
+    color: #64748b; padding: 4px 0;
+  }
+  .cal-weekday.sun { color: #ef4444; }
+  .cal-weekday.sat { color: #3b82f6; }
+
+  .cal-day-row {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+  .cal-day {
+    min-height: 48px;
+    padding: 4px 2px;
+    background: transparent; border: 1.5px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex; flex-direction: column;
+    align-items: center;
+    transition: background 0.15s;
+  }
+  .cal-day:active { background: #f1f5f9; }
+  .cal-day.other-month { opacity: 0.3; }
+  .cal-day.today { background: #eff6ff; }
+  .cal-day.selected {
+    background: #0f172a !important;
+    border-color: #0f172a;
+  }
+  .cal-day.selected .cal-day-num { color: #fff !important; }
+  .cal-day.selected .cal-day-count { background: #fff; color: #0f172a; }
+
+  .cal-day-num {
+    font-size: 14px; font-weight: 600; color: #0f172a;
+    margin-bottom: 3px;
+  }
+  .cal-day.sun .cal-day-num { color: #ef4444; }
+  .cal-day.sat .cal-day-num { color: #3b82f6; }
+
+  .cal-day-count {
+    font-size: 10px; font-weight: 700;
+    background: #3b82f6; color: #fff;
+    padding: 1px 6px; border-radius: 8px;
+    line-height: 1.4;
+  }
+  .cal-day-dot {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: #3b82f6;
+  }
+
+  /* ───── 선택된 날짜 상세 ───── */
+  .day-detail {
+    margin-top: 12px;
+  }
+  .day-detail-header {
+    font-size: 14px; font-weight: 700;
+    color: #0f172a; padding: 8px 4px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .day-detail-count {
+    font-size: 12px; font-weight: 600;
+    color: #64748b;
+  }
+  .day-detail-empty {
+    text-align: center; padding: 30px 20px;
+    background: #fff; border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    color: #94a3b8; font-size: 13px;
+  }
+  .day-detail-card {
+    background: #fff; border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 8px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  }
+  .day-detail-site {
+    font-size: 16px; font-weight: 700; color: #0f172a;
+    margin-bottom: 4px;
+  }
+  .day-detail-company {
+    font-size: 13px; color: #64748b;
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .day-detail-addr {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 10px;
+    background: #ecfdf5; color: #059669;
+    border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    text-decoration: none; word-break: keep-all;
+    cursor: pointer;
+  }
+  .day-detail-addr:active { background: #d1fae5; }
+  .day-detail-addr .arrow {
+    margin-left: auto; flex: 0 0 auto;
+    font-size: 13px; color: #94a3b8;
+  }
+
   .chips {
     display: flex; gap: 6px; overflow-x: auto;
     margin-top: 10px; padding-bottom: 2px;
@@ -219,27 +378,54 @@
       </svg>
     </button>
   </div>
-  <div class="search-wrap">
-    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
-    </svg>
-    <input type="search" id="search" placeholder="현장명·업체명·주소·날짜 검색" autocomplete="off">
-    <button class="clear-btn" id="clear" aria-label="지우기">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
-        <path d="M18 6 6 18M6 6l12 12"/>
+
+  <!-- 보기 모드 탭 -->
+  <div class="view-tabs">
+    <button class="view-tab active" data-view="list">📋 목록</button>
+    <button class="view-tab" data-view="calendar">📅 달력</button>
+  </div>
+
+  <!-- 목록 보기 컨트롤 -->
+  <div class="list-controls">
+    <div class="search-wrap">
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
+      </svg>
+      <input type="search" id="search" placeholder="현장명·업체명·주소·날짜 검색" autocomplete="off">
+      <button class="clear-btn" id="clear" aria-label="지우기">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+          <path d="M18 6 6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="sort-bar">
+      <button class="sort-btn active" data-sort="date-desc">📅 최신순</button>
+      <button class="sort-btn" data-sort="date-asc">📅 오래된순</button>
+      <button class="sort-btn" data-sort="company">🏢 업체별</button>
+    </div>
+  </div>
+
+  <!-- 달력 보기 컨트롤 (월 이동) -->
+  <div class="calendar-controls" style="display:none;">
+    <button class="cal-nav-btn" id="cal-prev" aria-label="이전 달">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
       </svg>
     </button>
-  </div>
-  <div class="chips" id="chips"></div>
-  <div class="sort-bar">
-    <button class="sort-btn active" data-sort="date-desc">📅 최신순</button>
-    <button class="sort-btn" data-sort="date-asc">📅 오래된순</button>
-    <button class="sort-btn" data-sort="company">🏢 업체별</button>
+    <button class="cal-month-label" id="cal-month-label">2026년 5월</button>
+    <button class="cal-nav-btn" id="cal-next" aria-label="다음 달">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </button>
+    <button class="cal-today-btn" id="cal-today">오늘</button>
   </div>
 </div>
 
 <div class="status-bar" id="status"><span>데이터를 불러오는 중...</span></div>
 
+<!-- 목록 보기 -->
 <div class="list" id="list">
   <div class="skeleton-card">
     <div class="skeleton-line" style="width: 60%; height: 18px; margin-bottom: 12px;"></div>
@@ -251,6 +437,12 @@
     <div class="skeleton-line" style="width: 35%; margin-bottom: 10px;"></div>
     <div class="skeleton-line" style="width: 75%;"></div>
   </div>
+</div>
+
+<!-- 달력 보기 -->
+<div class="calendar-view" id="calendar-view" style="display:none;">
+  <div class="calendar-grid" id="calendar-grid"></div>
+  <div class="day-detail" id="day-detail"></div>
 </div>
 
 <div class="footer" id="footer">실시간 동기화 · 시트 수정 즉시 반영</div>
@@ -534,7 +726,11 @@
       }
 
       renderChips();
-      render();
+      if (currentView === "calendar") {
+        renderCalendar();
+      } else {
+        render();
+      }
 
       const now = new Date();
       const hh = String(now.getHours()).padStart(2, "0");
@@ -577,6 +773,220 @@
       render();
     });
   });
+
+  // ───── 달력 보기 ─────
+  let currentView = "list";
+  let calYear, calMonth; // 표시 중인 달
+  let selectedDate = null; // "YYYY-MM-DD"
+
+  function initCalendar() {
+    const today = new Date();
+    calYear = today.getFullYear();
+    calMonth = today.getMonth();
+    selectedDate = formatDateKey(today);
+  }
+  function formatDateKey(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  // 해당 날짜의 시공 데이터 추출 (한 날에 여러 건 가능)
+  function getRowsByDate() {
+    const map = {};
+    rows.forEach(rowObj => {
+      if (COL.date === -1) return;
+      const d = parseDate(rowObj.data[COL.date]);
+      if (!d) return;
+      const key = formatDateKey(d);
+      if (!map[key]) map[key] = [];
+      map[key].push(rowObj);
+    });
+    return map;
+  }
+
+  function renderCalendar() {
+    const grid = document.getElementById("calendar-grid");
+    const monthLabel = document.getElementById("cal-month-label");
+    monthLabel.textContent = `${calYear}년 ${calMonth + 1}월`;
+
+    const dateMap = getRowsByDate();
+    const todayKey = formatDateKey(new Date());
+
+    // 이 달의 1일과 마지막 날
+    const firstDay = new Date(calYear, calMonth, 1);
+    const lastDay = new Date(calYear, calMonth + 1, 0);
+    const startWeekday = firstDay.getDay(); // 0=일
+    const daysInMonth = lastDay.getDate();
+
+    // 이전 달의 마지막 며칠 (회색으로)
+    const prevLastDay = new Date(calYear, calMonth, 0).getDate();
+    const cells = [];
+    // 앞쪽 회색 칸
+    for (let i = startWeekday - 1; i >= 0; i--) {
+      const d = prevLastDay - i;
+      const date = new Date(calYear, calMonth - 1, d);
+      cells.push({ date, otherMonth: true });
+    }
+    // 이번 달
+    for (let d = 1; d <= daysInMonth; d++) {
+      cells.push({ date: new Date(calYear, calMonth, d), otherMonth: false });
+    }
+    // 다음 달 (7의 배수 채우기)
+    while (cells.length % 7 !== 0) {
+      const d = cells.length - (startWeekday + daysInMonth) + 1;
+      cells.push({ date: new Date(calYear, calMonth + 1, d), otherMonth: true });
+    }
+
+    // 요일 헤더
+    const weekdays = ["일","월","화","수","목","금","토"];
+    let html = `<div class="cal-weekday-row">
+      ${weekdays.map((w, i) => `<div class="cal-weekday ${i===0?'sun':i===6?'sat':''}">${w}</div>`).join("")}
+    </div>`;
+
+    // 날짜 셀
+    html += `<div class="cal-day-row">`;
+    cells.forEach((cell, i) => {
+      if (i > 0 && i % 7 === 0) {
+        html += `</div><div class="cal-day-row">`;
+      }
+      const key = formatDateKey(cell.date);
+      const count = dateMap[key] ? dateMap[key].length : 0;
+      const dayOfWeek = cell.date.getDay();
+      const classes = ["cal-day"];
+      if (cell.otherMonth) classes.push("other-month");
+      if (key === todayKey) classes.push("today");
+      if (key === selectedDate) classes.push("selected");
+      if (dayOfWeek === 0) classes.push("sun");
+      if (dayOfWeek === 6) classes.push("sat");
+
+      const indicator = count > 0
+        ? (count === 1
+            ? `<div class="cal-day-dot"></div>`
+            : `<div class="cal-day-count">${count}</div>`)
+        : "";
+
+      html += `
+        <div class="${classes.join(' ')}" data-date="${key}">
+          <div class="cal-day-num">${cell.date.getDate()}</div>
+          ${indicator}
+        </div>`;
+    });
+    html += `</div>`;
+
+    grid.innerHTML = html;
+
+    // 클릭 이벤트
+    grid.querySelectorAll(".cal-day").forEach(el => {
+      el.addEventListener("click", () => {
+        selectedDate = el.dataset.date;
+        // 다른 달 클릭 시 그 달로 이동
+        const d = new Date(selectedDate);
+        if (d.getMonth() !== calMonth || d.getFullYear() !== calYear) {
+          calYear = d.getFullYear();
+          calMonth = d.getMonth();
+        }
+        renderCalendar();
+        renderDayDetail();
+      });
+    });
+
+    renderDayDetail();
+  }
+
+  function renderDayDetail() {
+    const detail = document.getElementById("day-detail");
+    if (!selectedDate) {
+      detail.innerHTML = "";
+      return;
+    }
+    const dateMap = getRowsByDate();
+    const list = dateMap[selectedDate] || [];
+
+    const [y, m, d] = selectedDate.split("-").map(Number);
+    const dateObj = new Date(y, m-1, d);
+    const days = ["일","월","화","수","목","금","토"];
+    const dateLabel = `${m}월 ${d}일 (${days[dateObj.getDay()]})`;
+
+    let html = `
+      <div class="day-detail-header">
+        <span>📅 ${dateLabel}</span>
+        <span class="day-detail-count">${list.length > 0 ? list.length + '건' : ''}</span>
+      </div>`;
+
+    if (list.length === 0) {
+      html += `<div class="day-detail-empty">이 날짜에 시공 일정이 없습니다</div>`;
+    } else {
+      html += list.map(rowObj => {
+        const row = rowObj.data;
+        const company = COL.company !== -1 ? String(row[COL.company] || "").trim() : "";
+        const site = COL.site !== -1 ? String(row[COL.site] || "").trim() : "";
+        const address = COL.address !== -1 ? String(row[COL.address] || "").trim() : "";
+        const safeAddr = address.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        return `
+          <div class="day-detail-card">
+            <div class="day-detail-site">${escapeHTML(site || "(현장명 없음)")}</div>
+            ${company ? `<div class="day-detail-company">🏢 ${escapeHTML(company)}</div>` : ""}
+            ${address ? `
+              <a class="day-detail-addr" onclick="openNaverNavi('${safeAddr}')">
+                <span>📍 ${escapeHTML(address)}</span>
+                <span class="arrow">→</span>
+              </a>
+            ` : ""}
+          </div>`;
+      }).join("");
+    }
+
+    detail.innerHTML = html;
+  }
+
+  // 보기 모드 전환
+  document.querySelectorAll(".view-tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const view = btn.dataset.view;
+      currentView = view;
+      document.querySelectorAll(".view-tab").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      if (view === "list") {
+        document.querySelector(".list-controls").style.display = "block";
+        document.querySelector(".calendar-controls").style.display = "none";
+        document.getElementById("list").style.display = "block";
+        document.getElementById("calendar-view").style.display = "none";
+        document.getElementById("status").style.display = "flex";
+        render();
+      } else {
+        document.querySelector(".list-controls").style.display = "none";
+        document.querySelector(".calendar-controls").style.display = "flex";
+        document.getElementById("list").style.display = "none";
+        document.getElementById("calendar-view").style.display = "block";
+        document.getElementById("status").style.display = "none";
+        renderCalendar();
+      }
+    });
+  });
+
+  // 달 이동
+  document.getElementById("cal-prev").addEventListener("click", () => {
+    calMonth--;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    renderCalendar();
+  });
+  document.getElementById("cal-next").addEventListener("click", () => {
+    calMonth++;
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar();
+  });
+  document.getElementById("cal-today").addEventListener("click", () => {
+    const today = new Date();
+    calYear = today.getFullYear();
+    calMonth = today.getMonth();
+    selectedDate = formatDateKey(today);
+    renderCalendar();
+  });
+
+  initCalendar();
 
   let lastLoad = Date.now();
   document.addEventListener("visibilitychange", () => {
