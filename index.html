@@ -164,14 +164,15 @@
     gap: 2px;
   }
   .cal-day {
-    min-height: 48px;
-    padding: 4px 2px;
+    min-height: 64px;
+    padding: 4px 3px;
     background: transparent; border: 1.5px solid transparent;
     border-radius: 8px;
     cursor: pointer;
     display: flex; flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     transition: background 0.15s;
+    overflow: hidden;
   }
   .cal-day:active { background: #f1f5f9; }
   .cal-day.other-month { opacity: 0.3; }
@@ -181,24 +182,37 @@
     border-color: #0f172a;
   }
   .cal-day.selected .cal-day-num { color: #fff !important; }
-  .cal-day.selected .cal-day-count { background: #fff; color: #0f172a; }
+  .cal-day.selected .cal-day-item {
+    background: rgba(255, 255, 255, 0.18); color: #fff;
+  }
+  .cal-day.selected .cal-day-more { color: rgba(255, 255, 255, 0.7); }
 
   .cal-day-num {
-    font-size: 14px; font-weight: 600; color: #0f172a;
-    margin-bottom: 3px;
+    font-size: 13px; font-weight: 600; color: #0f172a;
+    margin-bottom: 2px; text-align: center;
   }
   .cal-day.sun .cal-day-num { color: #ef4444; }
   .cal-day.sat .cal-day-num { color: #3b82f6; }
 
-  .cal-day-count {
-    font-size: 10px; font-weight: 700;
-    background: #3b82f6; color: #fff;
-    padding: 1px 6px; border-radius: 8px;
-    line-height: 1.4;
+  /* 날짜 셀 안의 항목들 */
+  .cal-day-items {
+    display: flex; flex-direction: column; gap: 1px;
+    width: 100%;
+    overflow: hidden;
   }
-  .cal-day-dot {
-    width: 4px; height: 4px; border-radius: 50%;
-    background: #3b82f6;
+  .cal-day-item {
+    font-size: 9px; line-height: 1.2;
+    font-weight: 600;
+    background: #dbeafe; color: #1e40af;
+    padding: 1px 3px; border-radius: 3px;
+    overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap;
+    word-break: break-all;
+  }
+  .cal-day-more {
+    font-size: 9px; font-weight: 700;
+    color: #64748b; text-align: center;
+    padding: 0 2px;
   }
 
   /* ───── 선택된 날짜 상세 ───── */
@@ -1081,11 +1095,26 @@
       if (dayOfWeek === 0) classes.push("sun");
       if (dayOfWeek === 6) classes.push("sat");
 
-      const indicator = count > 0
-        ? (count === 1
-            ? `<div class="cal-day-dot"></div>`
-            : `<div class="cal-day-count">${count}</div>`)
-        : "";
+      // 그 날짜의 시공 목록 → 짧은 텍스트로 표시
+      let indicator = "";
+      if (count > 0) {
+        const items = dateMap[key].map(rowObj => {
+          const r = rowObj.data;
+          const site = COL.site !== -1 ? String(r[COL.site] || "").trim() : "";
+          const cmp = COL.company !== -1 ? String(r[COL.company] || "").trim() : "";
+          if (site && cmp) return `${site}(${cmp})`;
+          return site || cmp || "";
+        }).filter(Boolean);
+
+        // 최대 2개까지 보여주고, 나머지는 "+N"으로 표시
+        const maxShow = 2;
+        const shown = items.slice(0, maxShow);
+        const more = items.length - maxShow;
+        indicator = `<div class="cal-day-items">
+          ${shown.map(t => `<div class="cal-day-item">${escapeHTML(t)}</div>`).join("")}
+          ${more > 0 ? `<div class="cal-day-more">+${more}</div>` : ""}
+        </div>`;
+      }
 
       html += `
         <div class="${classes.join(' ')}" data-date="${key}">
